@@ -1,0 +1,62 @@
+Special keys (non-matrix)
+	must define codes for these?
+	could define these as special column (for tables)?
+	Labeler has
+		On/OFF
+		Print
+Decoding keys (matrix->serial)
+	Labeler needs
+		Caps
+		Code
+		Num
+		Sym
+			special mode?
+	must handle key combinations to do shifted-keys
+		shift key: transient (as long as it's held)
+		sticky key: push on, push off
+	6 bits gives 64 keys max
+	leaving 2 bits for key type
+		but no room for which shift key?
+	could just define various kinds of shift keys
+		and then teach what each one is
+		would need separate code for each one
+		Atmega168 has
+			1K of SRAM
+			512 bytes of EEPROM
+				64 x 8 tables
+	no shifts:
+		abcdef...yz01234...9-=
+	shift key 1:
+		ABCDEF...YZ)!@#$...(_+
+
+	Need lookup for matrix -> code:
+		per shift state:
+			row x column
+			must separately define shift key
+Serial -> matrix
+	Could just look up each code in tables to discover shift state
+		and row/column location
+Teaching keys
+	Put into teach mode
+		special sequence?
+			user defined?
+			N seconds after wake/power up?
+		extra pin?
+	send command to define a key
+	then press the key
+		=> remembers in EEPROM
+		limited to single key
+		or must define shift keys first?
+			tell the difference between shift-A and A?
+			would have to define sticky keys first anyway
+Other teach mode commands
+	clear tables
+	dump tables
+	diagnostic mode (rxx/cxx)
+	define table entries by rxx/cxx + shift state => code
+	shortcut for i.e. alpha shift?
+
+RxxCxx => { name, shift bit, sticky/not }
+	globals: shift (bitmap of 3 bits?)
+
+{ Caps, Code, Num, Sym |
