@@ -192,6 +192,11 @@ static void assertRowOutputs(row_mask_t mask, row_mask_t polarity)
         else
             PORTB &= ~bits;
     }
+    else
+    {
+    	DDRB &= ~PB_ROW_MASK;	// reset to inputs
+    	PORTB &= ~PB_ROW_MASK;	// and don't pull up
+    }
 #endif
 #if PC_ROW_MASK != 0
     bits = PC_FROM_ROW(mask);
@@ -203,6 +208,11 @@ static void assertRowOutputs(row_mask_t mask, row_mask_t polarity)
         else
             PORTC &= ~bits;
     }
+    else
+    {
+    	DDRC &= ~PC_ROW_MASK;	// reset to inputs
+    	PORTC &= ~PC_ROW_MASK;	// and don't pull up
+    }
 #endif
 #if PD_ROW_MASK != 0
     bits = PD_FROM_ROW(mask);
@@ -213,6 +223,11 @@ static void assertRowOutputs(row_mask_t mask, row_mask_t polarity)
             PORTD |= bits;
         else
             PORTD &= ~bits;
+    }
+    else
+    {
+    	DDRD &= ~PD_ROW_MASK;	// reset to inputs
+    	PORTD &= ~PD_ROW_MASK;	// and don't pull up
     }
 #endif
 }
@@ -389,6 +404,9 @@ ISR(PCINT1_vect)
             }
             break;
 
+        case 0:                // no active column lines
+             break;
+
         case N_COLUMNS - 1:                // quiescent state wrong; one active
             columnInputs ^= quiescentState; // restore flipped bits
             quiescentState = ~quiescentState;
@@ -399,8 +417,6 @@ ISR(PCINT1_vect)
             quiescentState = ~quiescentState;
             break;
 
-        case 0:                // no active column lines
-            break;
     }
 
     // remember last column scan

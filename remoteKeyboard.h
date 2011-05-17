@@ -76,9 +76,8 @@
 #   define LOG2_N_ROWS 3
 #	define UNUSED_ROWS_MASK		((0xFF<<N_ROWS)&0xFF)
 
-
 #   define PB_ROW_MASK          0x03
-#   define PB_TO_ROW(val)       (((val)&0x03)<<6)
+#   define PB_TO_ROW(val)       (((val)&PB_ROW_MASK)<<6)
 #   define PB_FROM_ROW(val)     ((val)>>6)
 
 #   define PC_ROW_MASK          0x00
