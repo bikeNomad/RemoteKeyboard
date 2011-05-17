@@ -28,15 +28,15 @@ const KeyDefinition EEPROM_VAR specialKeys[N_SPECIALS];
 
 // RAM storage:
 // bitmap for which switches are forced
-         row_mask_t forcedSwitches[N_COLUMNS+1];
+volatile row_mask_t forcedSwitches[N_COLUMNS+1];
 volatile row_mask_t activeSwitches[N_COLUMNS+1];          // first time we notice a switch change
 volatile row_mask_t priorActiveSwitches[N_COLUMNS+1];     // second time
 
 // DEBUG
-column_mask_t seenColumnsHigh;
-column_mask_t seenColumnsLow = 0xFF;
-row_mask_t seenRowsHigh;
-row_mask_t seenRowsLow = 0xFF;
+volatile column_mask_t seenColumnsHigh;
+volatile column_mask_t seenColumnsLow = 0xFF;
+volatile row_mask_t seenRowsHigh;
+volatile row_mask_t seenRowsLow = 0xFF;
 
 // LED flashing: bits shifted out from LS bit; 1 = LED ON 
 // each bit is worth  LED_BIT_TICKS
@@ -59,7 +59,9 @@ static column_mask_t readColumnInputs(void)
 #endif
 
     seenColumnsHigh |= retval;      // DEBUG
+    seenColumnsHigh |= UNUSED_COLUMNS_MASK;
     seenColumnsLow &= retval;
+    seenColumnsLow &= ~UNUSED_COLUMNS_MASK;
 
     return retval;
 }
@@ -91,7 +93,9 @@ static row_mask_t readRowStates(void)
 #endif
 
     seenRowsHigh |= retval;     // DEBUG
+    seenRowsHigh |= UNUSED_ROWS_MASK;
     seenRowsLow &= retval;
+    seenRowsLow &= ~UNUSED_ROWS_MASK;
 
     return retval;
 }
@@ -237,6 +241,62 @@ static void assertAuxOutputs(row_mask_t mask)
 #endif
 }
 
+typedef struct {
+	uint8_t nBits : 4;
+	uint8_t highestBit : 4;
+} BitDecode_t;
+
+static BitDecode_t const usedBits[16] = {
+		{ 0, 0 },	// 0
+		{ 1, 0 },	// 1
+		{ 1, 1 },	// 2
+		{ 2, 1 },	// 3
+		{ 1, 2 },	// 4
+		{ 2, 2 },	// 5
+		{ 2, 2 },	// 6
+		{ 3, 2 },	// 7
+		{ 1, 3 },	// 8
+		{ 2, 3 },	// 9
+		{ 2, 3 },	// A
+		{ 3, 3 },	// B
+		{ 2, 3 },	// C
+		{ 3, 3 },	// D
+		{ 3, 3 },	// E
+		{ 4, 3 },	// F
+};
+
+#if 0
+// CALLED FROM ISR
+static uint8_t countBits(uint8_t number, uint8_t *lastBitnumSet)
+{
+	uint8_t numberSet;
+	uint8_t highestBit;
+	uint8_t nybble = number & 0x0F;
+	BitDecode_t const *p = usedBits + nybble;
+
+	if ((numberSet = p->nBits))
+	{
+		highestBit = p->highestBit;
+	}
+
+	number >>= 4;
+	p = usedBits + number;
+
+	uint8_t nb;
+	if ((nb = p->nBits))
+	{
+		numberSet += nb;
+		highestBit = 4 + p->highestBit;
+	}
+
+	if (numberSet)
+		*lastBitnumSet = highestBit;
+
+	return numberSet;
+}
+
+#else
+
 // CALLED FROM ISR
 static uint8_t countBits(uint8_t number, uint8_t *lastBitnumSet)
 {
@@ -254,6 +314,7 @@ static uint8_t countBits(uint8_t number, uint8_t *lastBitnumSet)
 
     return numberSet;
 }
+#endif
 
 // 30.5 Hz periodic interrupt
 ISR(TIMER0_OVF_vect)
@@ -310,6 +371,7 @@ ISR(PCINT1_vect)
 
   again:
     columnInputs ^= quiescentState; // invert if necessary
+    columnInputs &= ~UNUSED_COLUMNS_MASK;	// ignore unused columns
 
     uint8_t activeColumn = 0;
     uint8_t nSetBits = countBits(columnInputs, &activeColumn);
@@ -327,13 +389,13 @@ ISR(PCINT1_vect)
             }
             break;
 
-        case 7:                // quiescent state wrong; one active
+        case N_COLUMNS - 1:                // quiescent state wrong; one active
             columnInputs ^= quiescentState; // restore flipped bits
             quiescentState = ~quiescentState;
             goto again;
             break;
 
-        case 8:                // quiescent state wrong; nothing active
+        case N_COLUMNS:                // quiescent state wrong; nothing active
             quiescentState = ~quiescentState;
             break;
 
@@ -581,4 +643,5 @@ int main(void)
         // set_sleep_mode(SLEEP_MODE_IDLE);
         // sleep_mode();
     }
+    return 0;
 }

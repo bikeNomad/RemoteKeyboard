@@ -60,3 +60,25 @@ RxxCxx => { name, shift bit, sticky/not }
 	globals: shift (bitmap of 3 bits?)
 
 { Caps, Code, Num, Sym |
+
+HW
+	10msec column scan rate
+	360usec low/10msec
+
+fuses
+	low 0xC6 = crystal, no /8
+	high 0xdd = SPI, no WDT, erase EE, BOD at 2.7V
+		=> 0x9D = SPI and DW enabled
+	efuse = 00 = boot flash size = 1K words, start at $1C00
+
+debugging
+	get into dW mode using ISP connection
+	avarice -2 -g --debugwire -P atmega168 :1234
+	~/src/avr/remoteKeyboard $ avr-gdb ../RemoteKeyboardEclipse/Debug/RemoteKeyboardEclipse.elf
+		target extended-remote :1234
+		b main
+		c
+
+columns read 0x3F
+	so no cases fire.
+	should probably mask with unused bits to 0x3F | 0xC0 => 0xFF

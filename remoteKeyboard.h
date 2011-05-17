@@ -74,6 +74,8 @@
 // PB1:0 (2), PD7:2 (6)
 #   define N_ROWS 8
 #   define LOG2_N_ROWS 3
+#	define UNUSED_ROWS_MASK		((0xFF<<N_ROWS)&0xFF)
+
 
 #   define PB_ROW_MASK          0x03
 #   define PB_TO_ROW(val)       (((val)&0x03)<<6)
@@ -109,10 +111,12 @@
 
 // Column (input) pins (6):
 // PC5:0
-// 	PCINT15:8
+// 	PCINT13:8
 #   define N_COLUMNS 6
 //  actually LOG2(N_COLUMNS+1)
 #   define LOG2_N_COLUMNS 3
+
+#	define UNUSED_COLUMNS_MASK	((0xFF<<N_COLUMNS)&0xFF)
 
 #   define PB_COL_MASK          0x00
 #   define PB_TO_COL(val)
@@ -226,7 +230,7 @@ extern const KeyDefinition EEPROM_VAR specialKeys[N_SPECIALS];
 // RAM storage:
 // bitmap for which switches are forced
 // last column is for aux (non-matrix) switches
-extern          row_mask_t forcedSwitches[N_COLUMNS+1];   // bitmap for which switches are forced
+extern volatile row_mask_t forcedSwitches[N_COLUMNS+1];   // bitmap for which switches are forced
 extern volatile row_mask_t activeSwitches[N_COLUMNS+1];   // user pressed keys
 extern volatile row_mask_t changedSwitches[N_COLUMNS+1];  // user pressed keys (edge detect)
 
