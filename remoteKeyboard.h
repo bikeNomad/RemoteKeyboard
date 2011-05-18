@@ -22,7 +22,12 @@
 #   define BAUD 9600
 #endif
 
-#if defined(__AVR_ATmega48__) || defined(__AVR_ATmega88__) || defined(__AVR_ATmega168__) || defined(__AVR_ATmega48P__) || defined(__AVR_ATmega88P__) || defined(__AVR_ATmega168P__)
+#if defined(__AVR_ATmega48__) ||\
+	defined(__AVR_ATmega88__) ||\
+	defined(__AVR_ATmega168__) ||\
+	defined(__AVR_ATmega48P__) ||\
+	defined(__AVR_ATmega88P__) ||\
+	defined(__AVR_ATmega168P__)
 #   define MEGA_X8
 
 // Processor: ATMega48/88/168 (also Arduino)
@@ -56,7 +61,7 @@
 //        ========================
 //        DDDDDDDD  AAAAAA  DDDDDD
 //        000000000000000000111100
-// ARD.   76543210  012345  321098
+// ARD.   76543210  543210  321098
 //        ========================
 //
 // Arduino notes:
@@ -110,6 +115,7 @@
 
 // Column (input) pins (6):
 // PC5:0
+// Arduino A5-A0
 // 	PCINT13:8
 #   define N_COLUMNS 6
 //  actually LOG2(N_COLUMNS+1)

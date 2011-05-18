@@ -6,10 +6,10 @@
 #if 0
 FUSES =
 {
-    // 
-    .low = LFUSE_DEFAULT,
+    //
+    .low      = LFUSE_DEFAULT,
     // enable SPI (default) as well as saving EEPROM over chip erase and 4.5V BOD level
-    .high = (/*FUSE_DWEN & */ FUSE_SPIEN & FUSE_EESAVE & FUSE_BODLEVEL1 & FUSE_BODLEVEL0),
+    .high     = (/*FUSE_DWEN & */ FUSE_SPIEN & FUSE_EESAVE & FUSE_BODLEVEL1 & FUSE_BODLEVEL0),
     // no reset vector
     .extended = EFUSE_DEFAULT
 };
@@ -18,7 +18,7 @@ FUSES =
 #ifdef DECODE_KEYS
 
 // EEPROM storage:
-// codes 
+// codes
 const uint8_t EEPROM_VAR codes[(N_COLUMNS+1) * N_ROWS];
 
 // extra keys
@@ -29,16 +29,16 @@ const KeyDefinition EEPROM_VAR specialKeys[N_SPECIALS];
 // RAM storage:
 // bitmap for which switches are forced
 volatile row_mask_t forcedSwitches[N_COLUMNS+1];
-volatile row_mask_t activeSwitches[N_COLUMNS+1];          // first time we notice a switch change
-volatile row_mask_t priorActiveSwitches[N_COLUMNS+1];     // second time
+volatile row_mask_t activeSwitches[N_COLUMNS+1]; // first time we notice a switch change
+volatile row_mask_t priorActiveSwitches[N_COLUMNS+1]; // second time
 
 // DEBUG
 volatile column_mask_t seenColumnsHigh;
 volatile column_mask_t seenColumnsLow = 0xFF;
 volatile row_mask_t seenRowsHigh;
-volatile row_mask_t seenRowsLow = 0xFF;
+volatile row_mask_t seenRowsLow       = 0xFF;
 
-// LED flashing: bits shifted out from LS bit; 1 = LED ON 
+// LED flashing: bits shifted out from LS bit; 1 = LED ON
 // each bit is worth  LED_BIT_TICKS
 volatile uint8_t ledPattern;
 
@@ -58,10 +58,10 @@ static column_mask_t readColumnInputs(void)
     retval |= PD_TO_COL(PIND);
 #endif
 
-    seenColumnsHigh |= retval;      // DEBUG
+    seenColumnsHigh |= retval;         // DEBUG
     seenColumnsHigh |= UNUSED_COLUMNS_MASK;
-    seenColumnsLow &= retval;
-    seenColumnsLow &= ~UNUSED_COLUMNS_MASK;
+    seenColumnsLow  &= retval;
+    seenColumnsLow  &= ~UNUSED_COLUMNS_MASK;
 
     return retval;
 }
@@ -74,28 +74,28 @@ static row_mask_t readRowStates(void)
     uint8_t retval = 0;
 
 #if PB_ROW_MASK != 0
-    oldDDR = DDRB;              // save direction
-    DDRB = oldDDR & ~PB_ROW_MASK;   // reset DDR for inputs
-    retval |= PB_TO_ROW(PINB);  // and read current values
-    DDRB = oldDDR;              // restore direction
+    oldDDR  = DDRB;                    // save direction
+    DDRB    = oldDDR & ~PB_ROW_MASK;   // reset DDR for inputs
+    retval |= PB_TO_ROW(PINB);         // and read current values
+    DDRB    = oldDDR;                  // restore direction
 #endif
 #if PC_ROW_MASK != 0
-    oldDDR = DDRC;              // save direction
-    DDRC = oldDDR & ~PC_ROW_MASK;   // reset DDR for inputs
-    retval |= PC_TO_ROW(PINC);  // and read current values
-    DDRC = oldDDR;              // restore direction
+    oldDDR  = DDRC;                    // save direction
+    DDRC    = oldDDR & ~PC_ROW_MASK;   // reset DDR for inputs
+    retval |= PC_TO_ROW(PINC);         // and read current values
+    DDRC    = oldDDR;                  // restore direction
 #endif
 #if PD_ROW_MASK != 0
-    oldDDR = DDRD;              // save direction
-    DDRD = oldDDR & ~PD_ROW_MASK;   // reset DDR for inputs
-    retval |= PD_TO_ROW(PIND);  // and read current values
-    DDRD = oldDDR;              // restore direction
+    oldDDR  = DDRD;                    // save direction
+    DDRD    = oldDDR & ~PD_ROW_MASK;   // reset DDR for inputs
+    retval |= PD_TO_ROW(PIND);         // and read current values
+    DDRD    = oldDDR;                  // restore direction
 #endif
 
-    seenRowsHigh |= retval;     // DEBUG
+    seenRowsHigh |= retval;            // DEBUG
     seenRowsHigh |= UNUSED_ROWS_MASK;
-    seenRowsLow &= retval;
-    seenRowsLow &= ~UNUSED_ROWS_MASK;
+    seenRowsLow  &= retval;
+    seenRowsLow  &= ~UNUSED_ROWS_MASK;
 
     return retval;
 }
@@ -104,31 +104,31 @@ static row_mask_t readRowStates(void)
 static void processRowInputs(row_mask_t rowInputs, uint8_t activeColumn)
 {
     // priorActive active rowInputs ch ch2 valid
-    // 0 0 x x 0 0 
+    // 0 0 x x 0 0
     // 0 1 0 1 1 0 (glitch)
     // 0 1 1 0 1 1 pressed
     // 1 0 0 0 1 1 released
     // 1 0 1 1 1 0 (glitch)
-    // 1 1 x x 0 0 
-    // 
+    // 1 1 x x 0 0
+    //
     // changed = active ^ rowInputs
     // changed2 = priorActive ^ active
     // valid = changed2 & ~changed
     // then:
     // priorActive = active
     // active = rowInputs
-    // 
+    //
     // compare with last samples for this column to find changed ones (1 == changed)
     row_mask_t changed = activeSwitches[activeColumn] ^ rowInputs;
     // compare last with prior to detect glitches (1 == changed last time)
-    row_mask_t changed2 =
-        activeSwitches[activeColumn] ^ priorActiveSwitches[activeColumn];
+    row_mask_t changed2
+        =activeSwitches[activeColumn] ^ priorActiveSwitches[activeColumn];
     // valid ones are ones that have just changed but were stable before that
     // for at
     // least one sample.
     row_mask_t valid = changed2 & ~changed;
 
-    row_mask_t mask = 1;
+    row_mask_t mask  = 1;
     for (uint8_t rowBitNum = 0; rowBitNum < N_ROWS; rowBitNum++, mask <<= 1)
     {
         // for each row input with a valid change
@@ -140,16 +140,18 @@ static void processRowInputs(row_mask_t rowInputs, uint8_t activeColumn)
             uart_putc(state);
             uart_putc(rowBitNum + '0');
             uart_putc(activeColumn + '0');
+            uart_putc('\r');
+            uart_putc('\n');
 #else
             // decode keys from EEPROM settings
-            index_t index = activeColumn * N_ROWS + rowBitNum;
+            index_t index   = activeColumn * N_ROWS + rowBitNum;
             uint8_t keyCode = eeprom_read_byte(&codes[index]);
             uart_putc(keyCode); // send keyCode over serial link
 #endif
         }
     }
     priorActiveSwitches[activeColumn] = activeSwitches[activeColumn];
-    activeSwitches[activeColumn] = rowInputs;
+    activeSwitches[activeColumn]      = rowInputs;
 }
 
 // read individual AUX switch states as if they were row inputs
@@ -160,13 +162,32 @@ static row_mask_t readAuxSwitchStates(void)
     row_mask_t retval = 0;
 
 #if N_AUX_OUTPUTS >= 1
-    oldDDR = AUX0_DDREG;
-    AUX0_DDREG &= ~AUX0_MASK;    // set as input
-    bit = AUX0_PINREG & AUX0_MASK;          // read input
-    if (!AUX0_ON_STATE)         // invert if active low
+    oldDDR      = AUX0_DDREG;
+    AUX0_DDREG &= ~AUX0_MASK;          // set as input
+    bit         = AUX0_PINREG & AUX0_MASK; // read input
+    if (!AUX0_ON_STATE)                // invert if active low
+    {
         bit ^= AUX0_MASK;
-    retval |= bit;
+    }
     AUX0_DDREG = oldDDR;
+    if (bit)
+    {
+        retval = 0x01;
+    }
+#endif
+#if N_AUX_OUTPUTS >= 2
+    oldDDR      = AUX1_DDREG;
+    AUX1_DDREG &= ~AUX1_MASK;          // set as input
+    bit         = AUX1_PINREG & AUX1_MASK; // read input
+    if (!AUX1_ON_STATE)                // invert if active low
+    {
+        bit ^= AUX1_MASK;
+    }
+    AUX1_DDREG = oldDDR;
+    if (bit)
+    {
+        retval |= 0x02;
+    }
 #endif
 
     return retval;
@@ -186,16 +207,20 @@ static void assertRowOutputs(row_mask_t mask, row_mask_t polarity)
     bits = PB_FROM_ROW(mask);
     if (bits)
     {
-        DDRB |= bits;
+        DDRB |= bits;                  // turn into outputs
         if (polarity)
+        {
             PORTB |= bits;
+        }
         else
+        {
             PORTB &= ~bits;
+        }
     }
     else
     {
-    	DDRB &= ~PB_ROW_MASK;	// reset to inputs
-    	PORTB &= ~PB_ROW_MASK;	// and don't pull up
+        DDRB  &= ~PB_ROW_MASK;         // reset to inputs
+        PORTB &= ~PB_ROW_MASK;         // and don't pull up
     }
 #endif
 #if PC_ROW_MASK != 0
@@ -204,14 +229,18 @@ static void assertRowOutputs(row_mask_t mask, row_mask_t polarity)
     {
         DDRC |= bits;
         if (polarity)
+        {
             PORTC |= bits;
+        }
         else
+        {
             PORTC &= ~bits;
+        }
     }
     else
     {
-    	DDRC &= ~PC_ROW_MASK;	// reset to inputs
-    	PORTC &= ~PC_ROW_MASK;	// and don't pull up
+        DDRC  &= ~PC_ROW_MASK;         // reset to inputs
+        PORTC &= ~PC_ROW_MASK;         // and don't pull up
     }
 #endif
 #if PD_ROW_MASK != 0
@@ -220,14 +249,18 @@ static void assertRowOutputs(row_mask_t mask, row_mask_t polarity)
     {
         DDRD |= bits;
         if (polarity)
+        {
             PORTD |= bits;
+        }
         else
+        {
             PORTD &= ~bits;
+        }
     }
     else
     {
-    	DDRD &= ~PD_ROW_MASK;	// reset to inputs
-    	PORTD &= ~PD_ROW_MASK;	// and don't pull up
+        DDRD  &= ~PD_ROW_MASK;         // reset to inputs
+        PORTD &= ~PD_ROW_MASK;         // and don't pull up
     }
 #endif
 }
@@ -236,78 +269,86 @@ static void assertRowOutputs(row_mask_t mask, row_mask_t polarity)
 // and set those outputs to their ON state
 // to set all to inputs pass a 0
 // leaves DDRx bits set
-// CALLED FROM ISR
+// CALLED FROM timer tick ISR
 static void assertAuxOutputs(row_mask_t mask)
 {
 #if N_AUX_OUTPUTS >= 1
     if (mask & 1)
     {
         if (AUX0_ON_STATE)
+        {
             AUX0_PORTREG |= AUX0_MASK;
+        }
         else
+        {
             AUX0_PORTREG &= ~AUX0_MASK;
-        AUX0_DDREG |= AUX0_MASK;    // set as output
+        }
+        AUX0_DDREG |= AUX0_MASK;       // set as output
     }
     else
     {
         AUX0_PORTREG &= ~AUX0_MASK; // ensure pullups off
-        AUX0_DDREG &= ~AUX0_MASK;   // set as input
+        AUX0_DDREG   &= ~AUX0_MASK;    // set as input
     }
 #endif
 }
 
-typedef struct {
-	uint8_t nBits : 4;
-	uint8_t highestBit : 4;
+typedef struct
+{
+    uint8_t nBits : 4;
+    uint8_t highestBit : 4;
 } BitDecode_t;
 
-static BitDecode_t const usedBits[16] = {
-		{ 0, 0 },	// 0
-		{ 1, 0 },	// 1
-		{ 1, 1 },	// 2
-		{ 2, 1 },	// 3
-		{ 1, 2 },	// 4
-		{ 2, 2 },	// 5
-		{ 2, 2 },	// 6
-		{ 3, 2 },	// 7
-		{ 1, 3 },	// 8
-		{ 2, 3 },	// 9
-		{ 2, 3 },	// A
-		{ 3, 3 },	// B
-		{ 2, 3 },	// C
-		{ 3, 3 },	// D
-		{ 3, 3 },	// E
-		{ 4, 3 },	// F
+static BitDecode_t const usedBits[16] =
+{
+    { 0, 0 },                          // 0
+    { 1, 0 },                          // 1
+    { 1, 1 },                          // 2
+    { 2, 1 },                          // 3
+    { 1, 2 },                          // 4
+    { 2, 2 },                          // 5
+    { 2, 2 },                          // 6
+    { 3, 2 },                          // 7
+    { 1, 3 },                          // 8
+    { 2, 3 },                          // 9
+    { 2, 3 },                          // A
+    { 3, 3 },                          // B
+    { 2, 3 },                          // C
+    { 3, 3 },                          // D
+    { 3, 3 },                          // E
+    { 4, 3 },                          // F
 };
 
-#if 0
+#if 1
 // CALLED FROM ISR
 static uint8_t countBits(uint8_t number, uint8_t *lastBitnumSet)
 {
-	uint8_t numberSet;
-	uint8_t highestBit;
-	uint8_t nybble = number & 0x0F;
-	BitDecode_t const *p = usedBits + nybble;
+    uint8_t numberSet;
+    uint8_t highestBit;
+    uint8_t nybble       = number & 0x0F;
+    BitDecode_t const *p = usedBits + nybble;
 
-	if ((numberSet = p->nBits))
-	{
-		highestBit = p->highestBit;
-	}
+    if ((numberSet = p->nBits))
+    {
+        highestBit = p->highestBit;
+    }
 
-	number >>= 4;
-	p = usedBits + number;
+    number >>= 4;
+    p        = usedBits + number;
 
-	uint8_t nb;
-	if ((nb = p->nBits))
-	{
-		numberSet += nb;
-		highestBit = 4 + p->highestBit;
-	}
+    uint8_t nb;
+    if ((nb = p->nBits))
+    {
+        numberSet += nb;
+        highestBit = 4 + p->highestBit;
+    }
 
-	if (numberSet)
-		*lastBitnumSet = highestBit;
+    if (numberSet)
+    {
+        *lastBitnumSet = highestBit;
+    }
 
-	return numberSet;
+    return numberSet;
 }
 
 #else
@@ -316,7 +357,7 @@ static uint8_t countBits(uint8_t number, uint8_t *lastBitnumSet)
 static uint8_t countBits(uint8_t number, uint8_t *lastBitnumSet)
 {
     uint8_t numberSet = 0;
-    uint8_t bitNum = 0;
+    uint8_t bitNum    = 0;
 
     for (uint8_t mask = 1; mask; mask <<= 1, bitNum++)
     {
@@ -329,6 +370,7 @@ static uint8_t countBits(uint8_t number, uint8_t *lastBitnumSet)
 
     return numberSet;
 }
+
 #endif
 
 // 30.5 Hz periodic interrupt
@@ -345,7 +387,6 @@ ISR(TIMER0_OVF_vect)
     // new pattern?
     if (lastLedPattern != ledPattern)
         ledTicksRemaining = 1;
-
     if (!ledTicksRemaining)
         return;
 
@@ -357,11 +398,10 @@ ISR(TIMER0_OVF_vect)
         LED_ON;
     else
         LED_OFF;
-
     if (ledPattern != 0)
     {
         ledTicksRemaining = LED_BIT_TICKS;
-        ledPattern >>= 1;
+        ledPattern      >>= 1;
     }
 
     lastLedPattern = ledPattern;
@@ -378,37 +418,36 @@ ISR(PCINT1_vect)
     // get the column inputs (at least one of which has just changed)
     column_mask_t columnInputs = readColumnInputs();
 
-    // set all row outputs as inputs
-    assertRowOutputs(0, 0);
-
     static column_mask_t lastColumnInputs;
     static mask_t quiescentState;
 
-  again:
+again:
     columnInputs ^= quiescentState; // invert if necessary
-    columnInputs &= ~UNUSED_COLUMNS_MASK;	// ignore unused columns
+    columnInputs &= ~UNUSED_COLUMNS_MASK; // ignore unused columns
 
     uint8_t activeColumn = 0;
-    uint8_t nSetBits = countBits(columnInputs, &activeColumn);
+    uint8_t nSetBits     = countBits(columnInputs, &activeColumn);
 
     switch (nSetBits)
     {
         case 1:
-            {
-                // read the row inputs and convert to logical levels (1 == active)
-                row_mask_t rowInputs = readRowStates() ^ quiescentState;
-                // handle transitions and report on changes
-                processRowInputs(rowInputs, activeColumn);
-                // now force any switches that we're forcing
-                assertRowOutputs(forcedSwitches[activeColumn], quiescentState);
-            }
+        {
+            // read the row inputs and convert to logical levels (1 == active)
+            row_mask_t rowInputs = readRowStates() ^ quiescentState;
+            // handle transitions and report on changes
+            processRowInputs(rowInputs, activeColumn);
+            // now force any switches that we're forcing
+            assertRowOutputs(forcedSwitches[activeColumn], quiescentState);
+        }
+        break;
+
+        case 0:                        // no active column lines
+            // set all row outputs as inputs
+            assertRowOutputs(0, 0);
             break;
 
-        case 0:                // no active column lines
-             break;
-
-        case N_COLUMNS - 1:                // quiescent state wrong; one active
-            columnInputs ^= quiescentState; // restore flipped bits
+        case N_COLUMNS - 1:            // quiescent state wrong; one active
+            columnInputs  ^= quiescentState; // restore flipped bits
             quiescentState = ~quiescentState;
             goto again;
             break;
@@ -416,7 +455,6 @@ ISR(PCINT1_vect)
         case N_COLUMNS:                // quiescent state wrong; nothing active
             quiescentState = ~quiescentState;
             break;
-
     }
 
     // remember last column scan
@@ -490,27 +528,24 @@ static void releaseSwitch(uint8_t row, uint8_t column)
 static uint8_t doPressOrReleaseRC(char *command)
 {
     uint8_t row = command[1];
-    if (row >= '0' && row < '0' + N_ROWS)
+    if ((row >= '0') && (row < '0' + N_ROWS))
         row -= '0';
     else
         goto error;
-
     uint8_t column = command[2];
-    if (column >= '0' && column <= '0' + N_COLUMNS)
+    if ((column >= '0') && (column <= '0' + N_COLUMNS))
         column -= '0';
     else
         goto error;
-
     if (command[0] == 'p')
         pressSwitch(row, column);
     else if (command[0] == 'r')
         releaseSwitch(row, column);
     else
         goto error;
-
     return 0;
 
-  error:
+error:
     return 1;
 }
 
@@ -549,26 +584,28 @@ static SerialCommandState processSerialCommand(void)
         if (c == '\r')
         {
             SerialCommandState retval = SERIAL_CMD_ERROR;
-            if (bytesReceived == 2 && command[0] == 'R')
+            if ((bytesReceived == 2) && (command[0] == 'R'))
             {
-                goto *0;    // reset
+                goto *0;               // reset
             }
             if (bytesReceived == 4)
             {
-                command[3] = '\0';  // mark end of string
+                command[3] = '\0';     // mark end of string
                 if (doPressOrReleaseRC(command) == 0)
+                {
                     retval = SERIAL_CMD_OK; // on no error
+                }
                 else
                 {
                     uart_puts(command);
                     uart_puts_P("?\r\n");
                 }
             }
-            bytesReceived = 0;  // reset counter
+            bytesReceived = 0;         // reset counter
             return retval;
         }
 #else /* DECODE_KEYS */
-        // search for code in specialKeys[]
+      // search for code in specialKeys[]
         for (KeyDefinition * special = specialKeys;
              special < specialKeys + N_SPECIALS; special++)
         {
@@ -596,13 +633,13 @@ static void initIO(void)
     // init IO
     // set unused pins as outputs pulled low
     PORTB = PB_OUTPUT_INIT;
-    DDRB = PB_OTHER_OUTPUTS;
+    DDRB  = PB_OTHER_OUTPUTS;
 
     PORTC = PC_OUTPUT_INIT;
-    DDRC = PC_OTHER_OUTPUTS;
+    DDRC  = PC_OTHER_OUTPUTS;
 
     PORTD = PD_OUTPUT_INIT;
-    DDRD = PD_OTHER_OUTPUTS;
+    DDRD  = PD_OTHER_OUTPUTS;
 }
 
 static void initTimers(void)
@@ -639,7 +676,7 @@ int main(void)
     initPCInterrupts();
     uart_init(UART_BAUD_SELECT(BAUD, F_CPU));
 
-    sei();                      // enable IRQ globally
+    sei();                             // enable IRQ globally
 
     ledPattern = 0x55;
 
@@ -647,7 +684,7 @@ int main(void)
     uart_puts_P("Hi there $Rev: 27 $\r\n");
 
     // main loop: process serial commands and go to sleep
-    for (;;)
+    for (;; )
     {
         SerialCommandState err = processSerialCommand();
         if (err == SERIAL_CMD_ERROR)

@@ -1,3 +1,3 @@
-set columns=230
-vert split
-wincmd =
+set columns=115
+" vert split
+" wincmd =
