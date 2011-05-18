@@ -15,8 +15,9 @@ It can potentially use all of the IO lines of your AVR for some combination of:
 - row sense (outputs)
 - column strobe (inputs)
 
-Here's a sample of how you might connect an ATMega168 (the processor in some [Arduino][] boards) to a 6x8 keyboard:
+Here's a sample of how you might connect an ATMega168 (the processor in some [Arduino][] boards) to a 6x8 keyboard
+(note that this will be broken when viewed on github):
 
-![Connections to a remote keyboard](blob/master/remoteKeyboard.png?raw=true)
+![Connections to a remote keyboard](./Connections/remoteKeyboard.png)
 
 [Arduino]: http://www.arduino.cc/
