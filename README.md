@@ -17,6 +17,6 @@ It can potentially use all of the IO lines of your AVR for some combination of:
 
 Here's a sample of how you might connect an ATMega168 (the processor in some [Arduino][] boards) to a 6x8 keyboard:
 
-![Connections to a remote keyboard](./Connections/remoteKeyboard.png)
+![Connections to a remote keyboard](remoteKeyboard.png)
 
 [Arduino]: http://www.arduino.cc/
