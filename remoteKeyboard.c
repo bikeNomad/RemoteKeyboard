@@ -15,17 +15,6 @@ FUSES =
 };
 #endif
 
-#ifdef DECODE_KEYS
-
-// EEPROM storage:
-// codes
-const uint8_t EEPROM_VAR codes[(N_COLUMNS+1) * N_ROWS];
-
-// extra keys
-const KeyDefinition EEPROM_VAR specialKeys[N_SPECIALS];
-
-#endif
-
 // RAM storage:
 // bitmap for which switches are forced
 volatile row_mask_t forcedSwitches[N_COLUMNS+1];
@@ -70,19 +59,18 @@ static column_mask_t readColumnInputs(void)
 // CALLED FROM ISR
 static row_mask_t readRowStates(void)
 {
-    uint8_t oldDDRB, oldDDRC, oldDDRD;
     uint8_t retval = 0;
 
 #if PB_ROW_MASK != 0
-    oldDDRB  = DDRB;                    // save direction
+    uint8_t oldDDRB  = DDRB;                    // save direction
     DDRB    = oldDDRB & ~PB_ROW_MASK;   // reset DDR for inputs
 #endif
 #if PC_ROW_MASK != 0
-    oldDDRC  = DDRC;                    // save direction
+    uint8_t oldDDRC  = DDRC;                    // save direction
     DDRC    = oldDDRC & ~PC_ROW_MASK;   // reset DDR for inputs
 #endif
 #if PD_ROW_MASK != 0
-    oldDDRD  = DDRD;                    // save direction
+    uint8_t oldDDRD  = DDRD;                    // save direction
     DDRD    = oldDDRD & ~PD_ROW_MASK;   // reset DDR for inputs
 #endif
 
@@ -144,19 +132,12 @@ static void processRowInputs(row_mask_t rowInputs, uint8_t activeColumn)
         if (valid & mask)
         {
             uint8_t state = (rowInputs & mask) ? 'p' : 'r'; // pressed/released
-#ifndef DECODE_KEYS
             // send out p00 or r00 type codes
             uart_putc(state);
             uart_putc(rowBitNum + '0');
             uart_putc(activeColumn + '0');
             uart_putc('\r');
             uart_putc('\n');
-#else
-            // decode keys from EEPROM settings
-            index_t index   = activeColumn * N_ROWS + rowBitNum;
-            uint8_t keyCode = eeprom_read_byte(&codes[index]);
-            uart_putc(keyCode); // send keyCode over serial link
-#endif
         }
     }
     priorActiveSwitches[activeColumn] = activeSwitches[activeColumn];
@@ -328,7 +309,6 @@ static BitDecode_t const usedBits[16] =
     { 4, 3 },                          // F
 };
 
-#if 0
 // CALLED FROM ISR
 static uint8_t countBits(uint8_t number, uint8_t *lastBitnumSet)
 {
@@ -360,28 +340,6 @@ static uint8_t countBits(uint8_t number, uint8_t *lastBitnumSet)
     return numberSet;
 }
 
-#else
-
-// CALLED FROM ISR
-static uint8_t countBits(uint8_t number, uint8_t *lastBitnumSet)
-{
-    uint8_t numberSet = 0;
-    uint8_t bitNum    = 0;
-
-    for (uint8_t mask = 1; mask; mask <<= 1, bitNum++)
-    {
-        if (number & mask)
-        {
-            numberSet++;
-            *lastBitnumSet = bitNum;
-        }
-    }
-
-    return numberSet;
-}
-
-#endif
-
 // 30.5 Hz periodic interrupt
 ISR(TIMER0_OVF_vect)
 {
@@ -389,31 +347,6 @@ ISR(TIMER0_OVF_vect)
     processRowInputs(readAuxSwitchStates(), N_COLUMNS);
     // handle forced aux switches
     assertAuxOutputs(forcedSwitches[N_COLUMNS]);
-
-    static uint8_t ledTicksRemaining;
-    static uint8_t lastLedPattern;
-
-    // new pattern?
-    if (lastLedPattern != ledPattern)
-        ledTicksRemaining = 1;
-    if (!ledTicksRemaining)
-        return;
-
-    if (--ledTicksRemaining)
-        return;
-
-    // 1 => 0 transition: time to do something
-    if (ledPattern & 1)
-        LED_ON;
-    else
-        LED_OFF;
-    if (ledPattern != 0)
-    {
-        ledTicksRemaining = LED_BIT_TICKS;
-        ledPattern      >>= 1;
-    }
-
-    lastLedPattern = ledPattern;
 }
 
 // pin change interrupt vector PCINT1
@@ -503,11 +436,6 @@ static void dumpState(void)
     }
 }
 
-void setLEDPattern(uint8_t pattern)
-{
-    ledPattern = pattern;
-}
-
 static void pressSwitch(uint8_t row, uint8_t column)
 {
     forcedSwitches[column] |= (1 << row);
@@ -561,9 +489,13 @@ error:
 // SERIAL_CMD_INCOMPLETE for incomplete (<4 chars) or
 // SERIAL_CMD_ERROR for anything else
 // Serial commands:
+//
 // p00 or r00 type codes
-// pRC\r press row R, column C
-// rRC\r release row R, column C
+// 	pRC\r press row R, column C
+// 	rRC\r release row R, column C
+//
+// R for reset
+
 static SerialCommandState processSerialCommand(void)
 {
     static char command[8];
@@ -586,8 +518,7 @@ static SerialCommandState processSerialCommand(void)
             else
                 return SERIAL_CMD_ERROR;
         }
-#ifndef DECODE_KEYS
-        if (c == '\r')
+        if (c == '\r')		// gotten a full command line?
         {
             SerialCommandState retval = SERIAL_CMD_ERROR;
             if ((bytesReceived == 2) && (command[0] == 'R'))
@@ -610,24 +541,6 @@ static SerialCommandState processSerialCommand(void)
             bytesReceived = 0;         // reset counter
             return retval;
         }
-#else /* DECODE_KEYS */
-      // search for code in specialKeys[]
-        for (KeyDefinition * special = specialKeys;
-             special < specialKeys + N_SPECIALS; special++)
-        {
-            // special->keyLocation.rowIndex
-            // special->keyLocation.columnIndex
-        }
-
-        // search for code in codes[]
-        for (index_t i = codes; i < sizeof (codes); i++)
-        {
-            if (c == codes[i])
-            {
-                // found it
-            }
-        }
-#endif
     }
     // here when buffer is full
     bytesReceived = 0;
@@ -683,8 +596,6 @@ int main(void)
     uart_init(UART_BAUD_SELECT(BAUD, F_CPU));
 
     sei();                             // enable IRQ globally
-
-    ledPattern = 0x55;
 
     // debug: print wakeup message
     uart_puts_P("Hi there $Rev: 27 $\r\n");
