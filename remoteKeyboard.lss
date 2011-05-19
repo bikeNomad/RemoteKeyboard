@@ -1,0 +1,1554 @@
+
+remoteKeyboard.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .data         00000012  00800100  000007ac  00000840  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  1 .text         000007ac  00000000  00000000  00000094  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  2 .bss          00000068  00800112  00800112  00000852  2**0
+                  ALLOC
+  3 .stab         00001b6c  00000000  00000000  00000854  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  4 .stabstr      000010d4  00000000  00000000  000023c0  2**0
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	0c 94 60 00 	jmp	0xc0	; 0xc0 <__ctors_end>
+   4:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+   8:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+   c:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+  10:	0c 94 29 02 	jmp	0x452	; 0x452 <__vector_4>
+  14:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+  18:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+  1c:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+  20:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+  24:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+  28:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+  2c:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+  30:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+  34:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+  38:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+  3c:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+  40:	0c 94 dd 02 	jmp	0x5ba	; 0x5ba <__vector_16>
+  44:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+  48:	0c 94 16 03 	jmp	0x62c	; 0x62c <__vector_18>
+  4c:	0c 94 42 03 	jmp	0x684	; 0x684 <__vector_19>
+  50:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+  54:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+  58:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+  5c:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+  60:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+  64:	0c 94 7d 00 	jmp	0xfa	; 0xfa <__bad_interrupt>
+
+00000068 <__c.1715>:
+  68:	52 65 6d 6f 74 65 4b 65 79 62 6f 61 72 64 20 76     RemoteKeyboard v
+  78:	31 2e 30 20 62 79 20 4e 65 64 20 4b 6f 6e 7a 0d     1.0 by Ned Konz.
+  88:	0a 00                                               ..
+
+0000008a <__c.1671>:
+  8a:	3f 0d 0a 00                                         ?...
+
+0000008e <__c.1612>:
+  8e:	0d 0a 00                                            ...
+
+00000091 <__c.1609>:
+  91:	0d 0a 43 6f 20 46 6f 20 41 63 20 50 72 0d 0a 00     ..Co Fo Ac Pr...
+
+000000a1 <__c.1607>:
+  a1:	20 72 6c 6f 3a 20 00                                 rlo: .
+
+000000a8 <__c.1605>:
+  a8:	0d 0a 72 68 69 3a 20 00                             ..rhi: .
+
+000000b0 <__c.1603>:
+  b0:	20 63 6c 6f 3a 20 00                                 clo: .
+
+000000b7 <__c.1601>:
+  b7:	0d 0a 63 68 69 3a 20 00 00                          ..chi: ..
+
+000000c0 <__ctors_end>:
+  c0:	11 24       	eor	r1, r1
+  c2:	1f be       	out	0x3f, r1	; 63
+  c4:	cf ef       	ldi	r28, 0xFF	; 255
+  c6:	d4 e0       	ldi	r29, 0x04	; 4
+  c8:	de bf       	out	0x3e, r29	; 62
+  ca:	cd bf       	out	0x3d, r28	; 61
+
+000000cc <__do_copy_data>:
+  cc:	11 e0       	ldi	r17, 0x01	; 1
+  ce:	a0 e0       	ldi	r26, 0x00	; 0
+  d0:	b1 e0       	ldi	r27, 0x01	; 1
+  d2:	ec ea       	ldi	r30, 0xAC	; 172
+  d4:	f7 e0       	ldi	r31, 0x07	; 7
+  d6:	02 c0       	rjmp	.+4      	; 0xdc <.do_copy_data_start>
+
+000000d8 <.do_copy_data_loop>:
+  d8:	05 90       	lpm	r0, Z+
+  da:	0d 92       	st	X+, r0
+
+000000dc <.do_copy_data_start>:
+  dc:	a2 31       	cpi	r26, 0x12	; 18
+  de:	b1 07       	cpc	r27, r17
+  e0:	d9 f7       	brne	.-10     	; 0xd8 <.do_copy_data_loop>
+
+000000e2 <__do_clear_bss>:
+  e2:	11 e0       	ldi	r17, 0x01	; 1
+  e4:	a2 e1       	ldi	r26, 0x12	; 18
+  e6:	b1 e0       	ldi	r27, 0x01	; 1
+  e8:	01 c0       	rjmp	.+2      	; 0xec <.do_clear_bss_start>
+
+000000ea <.do_clear_bss_loop>:
+  ea:	1d 92       	st	X+, r1
+
+000000ec <.do_clear_bss_start>:
+  ec:	aa 37       	cpi	r26, 0x7A	; 122
+  ee:	b1 07       	cpc	r27, r17
+  f0:	e1 f7       	brne	.-8      	; 0xea <.do_clear_bss_loop>
+  f2:	0e 94 b4 01 	call	0x368	; 0x368 <main>
+  f6:	0c 94 d4 03 	jmp	0x7a8	; 0x7a8 <_exit>
+
+000000fa <__bad_interrupt>:
+  fa:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
+
+000000fe <assertRowOutputs>:
+// quiescent=1: reset PORTx bits in mask
+// to set all to inputs pass a 0
+// leaves DDRx set
+// CALLED FROM ISR
+static void assertRowOutputs(row_mask_t mask, row_mask_t quiescent)
+{
+  fe:	28 2f       	mov	r18, r24
+    uint8_t bits;
+
+#if PB_ROW_MASK != 0
+    bits = PB_FROM_ROW(mask);
+ 100:	98 2f       	mov	r25, r24
+ 102:	92 95       	swap	r25
+ 104:	96 95       	lsr	r25
+ 106:	96 95       	lsr	r25
+ 108:	93 70       	andi	r25, 0x03	; 3
+    DDRB  &= ~PB_ROW_MASK;         // reset to inputs
+ 10a:	84 b1       	in	r24, 0x04	; 4
+ 10c:	8c 7f       	andi	r24, 0xFC	; 252
+ 10e:	84 b9       	out	0x04, r24	; 4
+    PORTB &= ~PB_ROW_MASK;         // and don't pull up
+ 110:	85 b1       	in	r24, 0x05	; 5
+ 112:	8c 7f       	andi	r24, 0xFC	; 252
+ 114:	85 b9       	out	0x05, r24	; 5
+    if (bits)
+ 116:	99 23       	and	r25, r25
+ 118:	61 f0       	breq	.+24     	; 0x132 <assertRowOutputs+0x34>
+    {
+        DDRB |= bits;                  // turn into outputs
+ 11a:	84 b1       	in	r24, 0x04	; 4
+ 11c:	89 2b       	or	r24, r25
+ 11e:	84 b9       	out	0x04, r24	; 4
+        if (quiescent)
+ 120:	66 23       	and	r22, r22
+ 122:	21 f0       	breq	.+8      	; 0x12c <assertRowOutputs+0x2e>
+        {
+            PORTB &= ~bits;
+ 124:	85 b1       	in	r24, 0x05	; 5
+ 126:	90 95       	com	r25
+ 128:	98 23       	and	r25, r24
+ 12a:	02 c0       	rjmp	.+4      	; 0x130 <assertRowOutputs+0x32>
+        }
+        else
+        {
+            PORTB |= bits;
+ 12c:	85 b1       	in	r24, 0x05	; 5
+ 12e:	98 2b       	or	r25, r24
+ 130:	95 b9       	out	0x05, r25	; 5
+            PORTC |= bits;
+        }
+    }
+#endif
+#if PD_ROW_MASK != 0
+    bits = PD_FROM_ROW(mask);
+ 132:	92 2f       	mov	r25, r18
+ 134:	99 0f       	add	r25, r25
+ 136:	99 0f       	add	r25, r25
+    DDRD  &= ~PD_ROW_MASK;         // reset to inputs
+ 138:	8a b1       	in	r24, 0x0a	; 10
+ 13a:	83 70       	andi	r24, 0x03	; 3
+ 13c:	8a b9       	out	0x0a, r24	; 10
+    PORTD &= ~PD_ROW_MASK;         // and don't pull up
+ 13e:	8b b1       	in	r24, 0x0b	; 11
+ 140:	83 70       	andi	r24, 0x03	; 3
+ 142:	8b b9       	out	0x0b, r24	; 11
+    if (bits)
+ 144:	99 23       	and	r25, r25
+ 146:	69 f0       	breq	.+26     	; 0x162 <assertRowOutputs+0x64>
+    {
+        DDRD |= bits;
+ 148:	8a b1       	in	r24, 0x0a	; 10
+ 14a:	89 2b       	or	r24, r25
+ 14c:	8a b9       	out	0x0a, r24	; 10
+        if (quiescent)
+ 14e:	66 23       	and	r22, r22
+ 150:	29 f0       	breq	.+10     	; 0x15c <assertRowOutputs+0x5e>
+        {
+            PORTD &= ~bits;
+ 152:	8b b1       	in	r24, 0x0b	; 11
+ 154:	90 95       	com	r25
+ 156:	98 23       	and	r25, r24
+ 158:	9b b9       	out	0x0b, r25	; 11
+ 15a:	08 95       	ret
+        }
+        else
+        {
+            PORTD |= bits;
+ 15c:	8b b1       	in	r24, 0x0b	; 11
+ 15e:	98 2b       	or	r25, r24
+ 160:	9b b9       	out	0x0b, r25	; 11
+ 162:	08 95       	ret
+
+00000164 <pressSwitch>:
+    }
+}
+
+void pressSwitch(uint8_t row, uint8_t column)
+{
+    forcedSwitches[column] |= (1 << row);
+ 164:	ea e6       	ldi	r30, 0x6A	; 106
+ 166:	f1 e0       	ldi	r31, 0x01	; 1
+ 168:	e6 0f       	add	r30, r22
+ 16a:	f1 1d       	adc	r31, r1
+ 16c:	90 81       	ld	r25, Z
+ 16e:	21 e0       	ldi	r18, 0x01	; 1
+ 170:	30 e0       	ldi	r19, 0x00	; 0
+ 172:	02 c0       	rjmp	.+4      	; 0x178 <pressSwitch+0x14>
+ 174:	22 0f       	add	r18, r18
+ 176:	33 1f       	adc	r19, r19
+ 178:	8a 95       	dec	r24
+ 17a:	e2 f7       	brpl	.-8      	; 0x174 <pressSwitch+0x10>
+ 17c:	92 2b       	or	r25, r18
+ 17e:	90 83       	st	Z, r25
+}
+ 180:	08 95       	ret
+
+00000182 <releaseSwitch>:
+
+void releaseSwitch(uint8_t row, uint8_t column)
+{
+    forcedSwitches[column] &= ~(1 << row);
+ 182:	ea e6       	ldi	r30, 0x6A	; 106
+ 184:	f1 e0       	ldi	r31, 0x01	; 1
+ 186:	e6 0f       	add	r30, r22
+ 188:	f1 1d       	adc	r31, r1
+ 18a:	90 81       	ld	r25, Z
+ 18c:	21 e0       	ldi	r18, 0x01	; 1
+ 18e:	30 e0       	ldi	r19, 0x00	; 0
+ 190:	02 c0       	rjmp	.+4      	; 0x196 <releaseSwitch+0x14>
+ 192:	22 0f       	add	r18, r18
+ 194:	33 1f       	adc	r19, r19
+ 196:	8a 95       	dec	r24
+ 198:	e2 f7       	brpl	.-8      	; 0x192 <releaseSwitch+0x10>
+ 19a:	20 95       	com	r18
+ 19c:	29 23       	and	r18, r25
+ 19e:	20 83       	st	Z, r18
+}
+ 1a0:	08 95       	ret
+
+000001a2 <printHexByte>:
+    lastColumnInputs = columnInputs;
+}
+
+// print byte as 2 hex chars
+static void printHexByte(uint8_t val)
+{
+ 1a2:	1f 93       	push	r17
+ 1a4:	18 2f       	mov	r17, r24
+    uint8_t v = (val & 0xF0) >> 4;
+ 1a6:	82 95       	swap	r24
+ 1a8:	8f 70       	andi	r24, 0x0F	; 15
+    v = (v > 0x09) ? ('A' - 0x0a + v) : ('0' + v);
+ 1aa:	8a 30       	cpi	r24, 0x0A	; 10
+ 1ac:	10 f0       	brcs	.+4      	; 0x1b2 <printHexByte+0x10>
+ 1ae:	89 5c       	subi	r24, 0xC9	; 201
+ 1b0:	01 c0       	rjmp	.+2      	; 0x1b4 <printHexByte+0x12>
+ 1b2:	80 5d       	subi	r24, 0xD0	; 208
+    uart_putc(v);
+ 1b4:	0e 94 a3 03 	call	0x746	; 0x746 <uart_putc>
+    v = val & 0x0F;
+ 1b8:	81 2f       	mov	r24, r17
+ 1ba:	8f 70       	andi	r24, 0x0F	; 15
+    v = (v > 0x09) ? ('A' - 0x0a + v) : ('0' + v);
+ 1bc:	8a 30       	cpi	r24, 0x0A	; 10
+ 1be:	10 f0       	brcs	.+4      	; 0x1c4 <printHexByte+0x22>
+ 1c0:	89 5c       	subi	r24, 0xC9	; 201
+ 1c2:	01 c0       	rjmp	.+2      	; 0x1c6 <printHexByte+0x24>
+ 1c4:	80 5d       	subi	r24, 0xD0	; 208
+    uart_putc(v);
+ 1c6:	0e 94 a3 03 	call	0x746	; 0x746 <uart_putc>
+}
+ 1ca:	1f 91       	pop	r17
+ 1cc:	08 95       	ret
+
+000001ce <processSerialCommand>:
+// 	rRC\r release row R, column C
+//
+// R for reset
+
+static SerialCommandState processSerialCommand(void)
+{
+ 1ce:	cf 93       	push	r28
+ 1d0:	df 93       	push	r29
+ 1d2:	bf c0       	rjmp	.+382    	; 0x352 <processSerialCommand+0x184>
+
+	// while there's still data to read
+	// and no errors
+	while ((bytesReceived < sizeof(command) - 1))
+	{
+		unsigned int c = uart_getc();
+ 1d4:	0e 94 86 03 	call	0x70c	; 0x70c <uart_getc>
+ 1d8:	9c 01       	movw	r18, r24
+		if ((c & 0xFF00) == 0)
+ 1da:	ac 01       	movw	r20, r24
+ 1dc:	40 70       	andi	r20, 0x00	; 0
+ 1de:	41 15       	cp	r20, r1
+ 1e0:	51 05       	cpc	r21, r1
+ 1e2:	79 f4       	brne	.+30     	; 0x202 <processSerialCommand+0x34>
+		{
+			command[bytesReceived++] = (uint8_t) c;
+ 1e4:	80 91 12 01 	lds	r24, 0x0112
+ 1e8:	e8 2f       	mov	r30, r24
+ 1ea:	f0 e0       	ldi	r31, 0x00	; 0
+ 1ec:	ed 5e       	subi	r30, 0xED	; 237
+ 1ee:	fe 4f       	sbci	r31, 0xFE	; 254
+ 1f0:	20 83       	st	Z, r18
+ 1f2:	8f 5f       	subi	r24, 0xFF	; 255
+ 1f4:	80 93 12 01 	sts	0x0112, r24
+			if ((c & 0xFF00) == UART_NO_DATA)
+				return SERIAL_CMD_INCOMPLETE;
+			else
+				return SERIAL_CMD_ERROR;
+		}
+		if (c == '\r') // gotten a full command line?
+ 1f8:	2d 30       	cpi	r18, 0x0D	; 13
+ 1fa:	31 05       	cpc	r19, r1
+ 1fc:	09 f0       	breq	.+2      	; 0x200 <processSerialCommand+0x32>
+ 1fe:	a9 c0       	rjmp	.+338    	; 0x352 <processSerialCommand+0x184>
+ 200:	06 c0       	rjmp	.+12     	; 0x20e <processSerialCommand+0x40>
+			command[bytesReceived++] = (uint8_t) c;
+		}
+		else
+		{
+			// serial error or no data?
+			if ((c & 0xFF00) == UART_NO_DATA)
+ 202:	40 50       	subi	r20, 0x00	; 0
+ 204:	51 40       	sbci	r21, 0x01	; 1
+ 206:	09 f0       	breq	.+2      	; 0x20a <processSerialCommand+0x3c>
+ 208:	ab c0       	rjmp	.+342    	; 0x360 <processSerialCommand+0x192>
+ 20a:	81 e0       	ldi	r24, 0x01	; 1
+ 20c:	aa c0       	rjmp	.+340    	; 0x362 <processSerialCommand+0x194>
+		}
+		if (c == '\r') // gotten a full command line?
+		{
+			SerialCommandState retval = SERIAL_CMD_ERROR;
+
+			switch (command[0])
+ 20e:	90 91 13 01 	lds	r25, 0x0113
+ 212:	92 35       	cpi	r25, 0x52	; 82
+ 214:	09 f4       	brne	.+2      	; 0x218 <processSerialCommand+0x4a>
+ 216:	47 c0       	rjmp	.+142    	; 0x2a6 <processSerialCommand+0xd8>
+ 218:	93 35       	cpi	r25, 0x53	; 83
+ 21a:	20 f4       	brcc	.+8      	; 0x224 <processSerialCommand+0x56>
+ 21c:	9d 30       	cpi	r25, 0x0D	; 13
+ 21e:	09 f0       	breq	.+2      	; 0x222 <processSerialCommand+0x54>
+ 220:	94 c0       	rjmp	.+296    	; 0x34a <processSerialCommand+0x17c>
+ 222:	47 c0       	rjmp	.+142    	; 0x2b2 <processSerialCommand+0xe4>
+ 224:	90 37       	cpi	r25, 0x70	; 112
+ 226:	19 f0       	breq	.+6      	; 0x22e <processSerialCommand+0x60>
+ 228:	92 37       	cpi	r25, 0x72	; 114
+ 22a:	09 f0       	breq	.+2      	; 0x22e <processSerialCommand+0x60>
+ 22c:	8e c0       	rjmp	.+284    	; 0x34a <processSerialCommand+0x17c>
+			{
+			case 'p': // press
+				// fall through
+			case 'r': // release
+				if (bytesReceived == 4)
+ 22e:	84 30       	cpi	r24, 0x04	; 4
+ 230:	09 f0       	breq	.+2      	; 0x234 <processSerialCommand+0x66>
+ 232:	8b c0       	rjmp	.+278    	; 0x34a <processSerialCommand+0x17c>
+				{
+					command[3] = '\0'; // mark end of string
+ 234:	10 92 16 01 	sts	0x0116, r1
+//      p05     press row 0, column 5
+//      p06     press aux 0
+static uint8_t doPressOrReleaseRC(char *command)
+{
+    uint8_t row = command[1];
+    if ((row >= '0') && (row < '0' + N_ROWS))
+ 238:	30 91 14 01 	lds	r19, 0x0114
+ 23c:	30 53       	subi	r19, 0x30	; 48
+ 23e:	38 30       	cpi	r19, 0x08	; 8
+ 240:	48 f5       	brcc	.+82     	; 0x294 <processSerialCommand+0xc6>
+        row -= '0';
+    else
+        goto error;
+    uint8_t column = command[2];
+    if ((column >= '0') && (column <= '0' + N_COLUMNS))
+ 242:	e0 91 15 01 	lds	r30, 0x0115
+ 246:	e0 53       	subi	r30, 0x30	; 48
+ 248:	e7 30       	cpi	r30, 0x07	; 7
+ 24a:	20 f5       	brcc	.+72     	; 0x294 <processSerialCommand+0xc6>
+        column -= '0';
+    else
+        goto error;
+    if (command[0] == 'p')
+ 24c:	80 91 13 01 	lds	r24, 0x0113
+ 250:	80 37       	cpi	r24, 0x70	; 112
+ 252:	71 f4       	brne	.+28     	; 0x270 <processSerialCommand+0xa2>
+    }
+}
+
+void pressSwitch(uint8_t row, uint8_t column)
+{
+    forcedSwitches[column] |= (1 << row);
+ 254:	f0 e0       	ldi	r31, 0x00	; 0
+ 256:	e6 59       	subi	r30, 0x96	; 150
+ 258:	fe 4f       	sbci	r31, 0xFE	; 254
+ 25a:	20 81       	ld	r18, Z
+ 25c:	81 e0       	ldi	r24, 0x01	; 1
+ 25e:	90 e0       	ldi	r25, 0x00	; 0
+ 260:	02 c0       	rjmp	.+4      	; 0x266 <processSerialCommand+0x98>
+ 262:	88 0f       	add	r24, r24
+ 264:	99 1f       	adc	r25, r25
+ 266:	3a 95       	dec	r19
+ 268:	e2 f7       	brpl	.-8      	; 0x262 <processSerialCommand+0x94>
+ 26a:	28 2b       	or	r18, r24
+ 26c:	20 83       	st	Z, r18
+ 26e:	10 c0       	rjmp	.+32     	; 0x290 <processSerialCommand+0xc2>
+        column -= '0';
+    else
+        goto error;
+    if (command[0] == 'p')
+        pressSwitch(row, column);
+    else if (command[0] == 'r')
+ 270:	82 37       	cpi	r24, 0x72	; 114
+ 272:	81 f4       	brne	.+32     	; 0x294 <processSerialCommand+0xc6>
+    forcedSwitches[column] |= (1 << row);
+}
+
+void releaseSwitch(uint8_t row, uint8_t column)
+{
+    forcedSwitches[column] &= ~(1 << row);
+ 274:	f0 e0       	ldi	r31, 0x00	; 0
+ 276:	e6 59       	subi	r30, 0x96	; 150
+ 278:	fe 4f       	sbci	r31, 0xFE	; 254
+ 27a:	20 81       	ld	r18, Z
+ 27c:	81 e0       	ldi	r24, 0x01	; 1
+ 27e:	90 e0       	ldi	r25, 0x00	; 0
+ 280:	02 c0       	rjmp	.+4      	; 0x286 <processSerialCommand+0xb8>
+ 282:	88 0f       	add	r24, r24
+ 284:	99 1f       	adc	r25, r25
+ 286:	3a 95       	dec	r19
+ 288:	e2 f7       	brpl	.-8      	; 0x282 <processSerialCommand+0xb4>
+ 28a:	80 95       	com	r24
+ 28c:	82 23       	and	r24, r18
+ 28e:	80 83       	st	Z, r24
+ 290:	80 e0       	ldi	r24, 0x00	; 0
+ 292:	5c c0       	rjmp	.+184    	; 0x34c <processSerialCommand+0x17e>
+					{
+						retval = SERIAL_CMD_OK; // on no error
+					}
+					else
+					{
+						uart_puts(command);
+ 294:	83 e1       	ldi	r24, 0x13	; 19
+ 296:	91 e0       	ldi	r25, 0x01	; 1
+ 298:	0e 94 b9 03 	call	0x772	; 0x772 <uart_puts>
+						uart_puts_P("?\r\n");
+ 29c:	8a e8       	ldi	r24, 0x8A	; 138
+ 29e:	90 e0       	ldi	r25, 0x00	; 0
+ 2a0:	0e 94 c6 03 	call	0x78c	; 0x78c <uart_puts_p>
+ 2a4:	52 c0       	rjmp	.+164    	; 0x34a <processSerialCommand+0x17c>
+					}
+				}
+				break;
+			case 'R': // reset
+				if (bytesReceived == 2)
+ 2a6:	82 30       	cpi	r24, 0x02	; 2
+ 2a8:	09 f0       	breq	.+2      	; 0x2ac <processSerialCommand+0xde>
+ 2aa:	4f c0       	rjmp	.+158    	; 0x34a <processSerialCommand+0x17c>
+ 2ac:	4f 93       	push	r20
+ 2ae:	5f 93       	push	r21
+ 2b0:	08 95       	ret
+}
+
+// debug: dump state of interrupt handler observations
+static void dumpState(void)
+{
+    uart_puts_P("\r\nchi: ");
+ 2b2:	87 eb       	ldi	r24, 0xB7	; 183
+ 2b4:	90 e0       	ldi	r25, 0x00	; 0
+ 2b6:	0e 94 c6 03 	call	0x78c	; 0x78c <uart_puts_p>
+    printHexByte(seenColumnsHigh);
+ 2ba:	80 91 62 01 	lds	r24, 0x0162
+ 2be:	0e 94 d1 00 	call	0x1a2	; 0x1a2 <printHexByte>
+    uart_puts_P(" clo: ");
+ 2c2:	80 eb       	ldi	r24, 0xB0	; 176
+ 2c4:	90 e0       	ldi	r25, 0x00	; 0
+ 2c6:	0e 94 c6 03 	call	0x78c	; 0x78c <uart_puts_p>
+    printHexByte(seenColumnsLow);
+ 2ca:	80 91 00 01 	lds	r24, 0x0100
+ 2ce:	0e 94 d1 00 	call	0x1a2	; 0x1a2 <printHexByte>
+    uart_puts_P("\r\nrhi: ");
+ 2d2:	88 ea       	ldi	r24, 0xA8	; 168
+ 2d4:	90 e0       	ldi	r25, 0x00	; 0
+ 2d6:	0e 94 c6 03 	call	0x78c	; 0x78c <uart_puts_p>
+    printHexByte(seenRowsHigh);
+ 2da:	80 91 71 01 	lds	r24, 0x0171
+ 2de:	0e 94 d1 00 	call	0x1a2	; 0x1a2 <printHexByte>
+    uart_puts_P(" rlo: ");
+ 2e2:	81 ea       	ldi	r24, 0xA1	; 161
+ 2e4:	90 e0       	ldi	r25, 0x00	; 0
+ 2e6:	0e 94 c6 03 	call	0x78c	; 0x78c <uart_puts_p>
+    printHexByte(seenRowsLow);
+ 2ea:	80 91 01 01 	lds	r24, 0x0101
+ 2ee:	0e 94 d1 00 	call	0x1a2	; 0x1a2 <printHexByte>
+    uart_puts_P("\r\nCo Fo Ac Pr\r\n");
+ 2f2:	81 e9       	ldi	r24, 0x91	; 145
+ 2f4:	90 e0       	ldi	r25, 0x00	; 0
+ 2f6:	0e 94 c6 03 	call	0x78c	; 0x78c <uart_puts_p>
+ 2fa:	c0 e0       	ldi	r28, 0x00	; 0
+ 2fc:	d0 e0       	ldi	r29, 0x00	; 0
+    for (uint8_t i = 0; i <= N_COLUMNS; i++)
+    {
+        printHexByte(i);
+ 2fe:	8c 2f       	mov	r24, r28
+ 300:	0e 94 d1 00 	call	0x1a2	; 0x1a2 <printHexByte>
+        uart_putc(' ');
+ 304:	80 e2       	ldi	r24, 0x20	; 32
+ 306:	0e 94 a3 03 	call	0x746	; 0x746 <uart_putc>
+        printHexByte(forcedSwitches[i]);
+ 30a:	fe 01       	movw	r30, r28
+ 30c:	e6 59       	subi	r30, 0x96	; 150
+ 30e:	fe 4f       	sbci	r31, 0xFE	; 254
+ 310:	80 81       	ld	r24, Z
+ 312:	0e 94 d1 00 	call	0x1a2	; 0x1a2 <printHexByte>
+        uart_putc(' ');
+ 316:	80 e2       	ldi	r24, 0x20	; 32
+ 318:	0e 94 a3 03 	call	0x746	; 0x746 <uart_putc>
+        printHexByte(activeSwitches[i]);
+ 31c:	fe 01       	movw	r30, r28
+ 31e:	ed 59       	subi	r30, 0x9D	; 157
+ 320:	fe 4f       	sbci	r31, 0xFE	; 254
+ 322:	80 81       	ld	r24, Z
+ 324:	0e 94 d1 00 	call	0x1a2	; 0x1a2 <printHexByte>
+        uart_putc(' ');
+ 328:	80 e2       	ldi	r24, 0x20	; 32
+ 32a:	0e 94 a3 03 	call	0x746	; 0x746 <uart_putc>
+        printHexByte(priorActiveSwitches[i]);
+ 32e:	fe 01       	movw	r30, r28
+ 330:	ee 58       	subi	r30, 0x8E	; 142
+ 332:	fe 4f       	sbci	r31, 0xFE	; 254
+ 334:	80 81       	ld	r24, Z
+ 336:	0e 94 d1 00 	call	0x1a2	; 0x1a2 <printHexByte>
+        uart_puts_P("\r\n");
+ 33a:	8e e8       	ldi	r24, 0x8E	; 142
+ 33c:	90 e0       	ldi	r25, 0x00	; 0
+ 33e:	0e 94 c6 03 	call	0x78c	; 0x78c <uart_puts_p>
+ 342:	21 96       	adiw	r28, 0x01	; 1
+    uart_puts_P("\r\nrhi: ");
+    printHexByte(seenRowsHigh);
+    uart_puts_P(" rlo: ");
+    printHexByte(seenRowsLow);
+    uart_puts_P("\r\nCo Fo Ac Pr\r\n");
+    for (uint8_t i = 0; i <= N_COLUMNS; i++)
+ 344:	c7 30       	cpi	r28, 0x07	; 7
+ 346:	d1 05       	cpc	r29, r1
+ 348:	d1 f6       	brne	.-76     	; 0x2fe <processSerialCommand+0x130>
+ 34a:	82 e0       	ldi	r24, 0x02	; 2
+			case '\r': // empty line: dump state
+	            dumpState();
+				break;
+			}
+
+			bytesReceived = 0; // reset counter
+ 34c:	10 92 12 01 	sts	0x0112, r1
+ 350:	08 c0       	rjmp	.+16     	; 0x362 <processSerialCommand+0x194>
+	static char command[8];
+	static uint8_t bytesReceived;
+
+	// while there's still data to read
+	// and no errors
+	while ((bytesReceived < sizeof(command) - 1))
+ 352:	80 91 12 01 	lds	r24, 0x0112
+ 356:	87 30       	cpi	r24, 0x07	; 7
+ 358:	08 f4       	brcc	.+2      	; 0x35c <processSerialCommand+0x18e>
+ 35a:	3c cf       	rjmp	.-392    	; 0x1d4 <processSerialCommand+0x6>
+			bytesReceived = 0; // reset counter
+			return retval;
+		}
+	}
+	// here when buffer is full
+	bytesReceived = 0;
+ 35c:	10 92 12 01 	sts	0x0112, r1
+ 360:	82 e0       	ldi	r24, 0x02	; 2
+	return SERIAL_CMD_ERROR;
+}
+ 362:	df 91       	pop	r29
+ 364:	cf 91       	pop	r28
+ 366:	08 95       	ret
+
+00000368 <main>:
+
+static void initIO(void)
+{
+    // init IO
+    // set unused pins as outputs pulled low
+    PORTB = PB_OUTPUT_INIT;
+ 368:	15 b8       	out	0x05, r1	; 5
+    DDRB  = PB_OTHER_OUTPUTS;
+ 36a:	88 e3       	ldi	r24, 0x38	; 56
+ 36c:	84 b9       	out	0x04, r24	; 4
+
+    PORTC = PC_OUTPUT_INIT;
+ 36e:	18 b8       	out	0x08, r1	; 8
+    DDRC  = PC_OTHER_OUTPUTS;
+ 370:	17 b8       	out	0x07, r1	; 7
+
+    PORTD = PD_OUTPUT_INIT;
+ 372:	82 e0       	ldi	r24, 0x02	; 2
+ 374:	8b b9       	out	0x0b, r24	; 11
+    DDRD  = PD_OTHER_OUTPUTS;
+ 376:	1a b8       	out	0x0a, r1	; 10
+static void initTimers(void)
+{
+    // init 8-bit Timer0 for periodic interrupts
+    // max period = 30.5 Hz with 8 MHz clock and clk/1024 prescaler
+    // min period = 31250 Hz with 8 MHz clock and clk/1 prescaler
+    TCCR0A = 0;
+ 378:	14 bc       	out	0x24, r1	; 36
+    TCCR0B = 5 << CS00; // clk/1024 = 30.5 Hz
+ 37a:	85 e0       	ldi	r24, 0x05	; 5
+ 37c:	85 bd       	out	0x25, r24	; 37
+    TIMSK0 = _BV(TOIE0);
+ 37e:	81 e0       	ldi	r24, 0x01	; 1
+ 380:	80 93 6e 00 	sts	0x006E, r24
+#if PB_COL_MASK != 0
+    PCMSK0 = PB_COL_MASK;
+    PCICR |= _BV(PCIE0);
+#endif
+#if PC_COL_MASK != 0
+    PCMSK1 = PC_COL_MASK;
+ 384:	8f e3       	ldi	r24, 0x3F	; 63
+ 386:	80 93 6c 00 	sts	0x006C, r24
+    PCICR |= _BV(PCIE1);
+ 38a:	80 91 68 00 	lds	r24, 0x0068
+ 38e:	82 60       	ori	r24, 0x02	; 2
+ 390:	80 93 68 00 	sts	0x0068, r24
+int main(void)
+{
+    initIO();
+    initTimers();
+    initPCInterrupts();
+    uart_init(UART_BAUD_SELECT(BAUD, F_CPU));
+ 394:	83 e3       	ldi	r24, 0x33	; 51
+ 396:	90 e0       	ldi	r25, 0x00	; 0
+ 398:	0e 94 6c 03 	call	0x6d8	; 0x6d8 <uart_init>
+
+    sei();                             // enable IRQ globally
+ 39c:	78 94       	sei
+
+    // debug: print wakeup message
+    uart_puts_P("RemoteKeyboard v1.0 by Ned Konz\r\n");
+ 39e:	88 e6       	ldi	r24, 0x68	; 104
+ 3a0:	90 e0       	ldi	r25, 0x00	; 0
+ 3a2:	0e 94 c6 03 	call	0x78c	; 0x78c <uart_puts_p>
+
+    // main loop: process serial commands and go to sleep
+    for (;; )
+    {
+        processSerialCommand();
+ 3a6:	0e 94 e7 00 	call	0x1ce	; 0x1ce <processSerialCommand>
+        // nothing else to do: go to sleep
+        set_sleep_mode(SLEEP_MODE_IDLE);
+ 3aa:	83 b7       	in	r24, 0x33	; 51
+ 3ac:	81 7f       	andi	r24, 0xF1	; 241
+ 3ae:	83 bf       	out	0x33, r24	; 51
+        sleep_mode();
+ 3b0:	83 b7       	in	r24, 0x33	; 51
+ 3b2:	81 60       	ori	r24, 0x01	; 1
+ 3b4:	83 bf       	out	0x33, r24	; 51
+ 3b6:	88 95       	sleep
+ 3b8:	83 b7       	in	r24, 0x33	; 51
+ 3ba:	8e 7f       	andi	r24, 0xFE	; 254
+ 3bc:	83 bf       	out	0x33, r24	; 51
+ 3be:	f3 cf       	rjmp	.-26     	; 0x3a6 <main+0x3e>
+
+000003c0 <processRowInputs>:
+    return retval;
+}
+
+// CALLED FROM ISR
+static void processRowInputs(row_mask_t rowInputs, uint8_t activeColumn)
+{
+ 3c0:	df 92       	push	r13
+ 3c2:	ef 92       	push	r14
+ 3c4:	ff 92       	push	r15
+ 3c6:	0f 93       	push	r16
+ 3c8:	1f 93       	push	r17
+ 3ca:	cf 93       	push	r28
+ 3cc:	df 93       	push	r29
+ 3ce:	e8 2e       	mov	r14, r24
+    // then:
+    // priorActive = active
+    // active = rowInputs
+    //
+    // compare with last samples for this column to find changed ones (1 == changed)
+    row_mask_t changed = activeSwitches[activeColumn] ^ rowInputs;
+ 3d0:	c6 2f       	mov	r28, r22
+ 3d2:	d0 e0       	ldi	r29, 0x00	; 0
+ 3d4:	fe 01       	movw	r30, r28
+ 3d6:	ed 59       	subi	r30, 0x9D	; 157
+ 3d8:	fe 4f       	sbci	r31, 0xFE	; 254
+ 3da:	10 81       	ld	r17, Z
+    // compare last with prior to detect glitches (1 == changed last time)
+    row_mask_t changed2
+        =activeSwitches[activeColumn] ^ priorActiveSwitches[activeColumn];
+ 3dc:	90 81       	ld	r25, Z
+ 3de:	fe 01       	movw	r30, r28
+ 3e0:	ee 58       	subi	r30, 0x8E	; 142
+ 3e2:	fe 4f       	sbci	r31, 0xFE	; 254
+ 3e4:	80 81       	ld	r24, Z
+    // valid ones are ones that have just changed but were stable before that
+    // for at
+    // least one sample.
+    row_mask_t valid = changed2 & ~changed;
+ 3e6:	1e 25       	eor	r17, r14
+ 3e8:	10 95       	com	r17
+ 3ea:	89 27       	eor	r24, r25
+ 3ec:	18 23       	and	r17, r24
+ 3ee:	ff 24       	eor	r15, r15
+ 3f0:	f3 94       	inc	r15
+ 3f2:	00 e3       	ldi	r16, 0x30	; 48
+        {
+            uint8_t state = (rowInputs & mask) ? 'p' : 'r'; // pressed/released
+            // send out p00 or r00 type codes
+            uart_putc(state);
+            uart_putc(rowBitNum + '0');
+            uart_putc(activeColumn + '0');
+ 3f4:	80 e3       	ldi	r24, 0x30	; 48
+ 3f6:	d8 2e       	mov	r13, r24
+ 3f8:	d6 0e       	add	r13, r22
+
+    row_mask_t mask  = 1;
+    for (uint8_t rowBitNum = 0; rowBitNum < N_ROWS; rowBitNum++, mask <<= 1)
+    {
+        // for each row input with a valid change
+        if (valid & mask)
+ 3fa:	8f 2d       	mov	r24, r15
+ 3fc:	81 23       	and	r24, r17
+ 3fe:	a1 f0       	breq	.+40     	; 0x428 <processRowInputs+0x68>
+        {
+            uint8_t state = (rowInputs & mask) ? 'p' : 'r'; // pressed/released
+ 400:	8f 2d       	mov	r24, r15
+ 402:	8e 21       	and	r24, r14
+ 404:	11 f4       	brne	.+4      	; 0x40a <processRowInputs+0x4a>
+ 406:	82 e7       	ldi	r24, 0x72	; 114
+ 408:	01 c0       	rjmp	.+2      	; 0x40c <processRowInputs+0x4c>
+ 40a:	80 e7       	ldi	r24, 0x70	; 112
+            // send out p00 or r00 type codes
+            uart_putc(state);
+ 40c:	0e 94 a3 03 	call	0x746	; 0x746 <uart_putc>
+            uart_putc(rowBitNum + '0');
+ 410:	80 2f       	mov	r24, r16
+ 412:	0e 94 a3 03 	call	0x746	; 0x746 <uart_putc>
+            uart_putc(activeColumn + '0');
+ 416:	8d 2d       	mov	r24, r13
+ 418:	0e 94 a3 03 	call	0x746	; 0x746 <uart_putc>
+            uart_putc('\r');
+ 41c:	8d e0       	ldi	r24, 0x0D	; 13
+ 41e:	0e 94 a3 03 	call	0x746	; 0x746 <uart_putc>
+            uart_putc('\n');
+ 422:	8a e0       	ldi	r24, 0x0A	; 10
+ 424:	0e 94 a3 03 	call	0x746	; 0x746 <uart_putc>
+ 428:	0f 5f       	subi	r16, 0xFF	; 255
+    // for at
+    // least one sample.
+    row_mask_t valid = changed2 & ~changed;
+
+    row_mask_t mask  = 1;
+    for (uint8_t rowBitNum = 0; rowBitNum < N_ROWS; rowBitNum++, mask <<= 1)
+ 42a:	08 33       	cpi	r16, 0x38	; 56
+ 42c:	11 f0       	breq	.+4      	; 0x432 <processRowInputs+0x72>
+ 42e:	ff 0c       	add	r15, r15
+ 430:	e4 cf       	rjmp	.-56     	; 0x3fa <processRowInputs+0x3a>
+            uart_putc(activeColumn + '0');
+            uart_putc('\r');
+            uart_putc('\n');
+        }
+    }
+    priorActiveSwitches[activeColumn] = activeSwitches[activeColumn];
+ 432:	fe 01       	movw	r30, r28
+ 434:	ed 59       	subi	r30, 0x9D	; 157
+ 436:	fe 4f       	sbci	r31, 0xFE	; 254
+ 438:	80 81       	ld	r24, Z
+ 43a:	ce 58       	subi	r28, 0x8E	; 142
+ 43c:	de 4f       	sbci	r29, 0xFE	; 254
+ 43e:	88 83       	st	Y, r24
+    activeSwitches[activeColumn]      = rowInputs;
+ 440:	e0 82       	st	Z, r14
+}
+ 442:	df 91       	pop	r29
+ 444:	cf 91       	pop	r28
+ 446:	1f 91       	pop	r17
+ 448:	0f 91       	pop	r16
+ 44a:	ff 90       	pop	r15
+ 44c:	ef 90       	pop	r14
+ 44e:	df 90       	pop	r13
+ 450:	08 95       	ret
+
+00000452 <__vector_4>:
+}
+
+// pin change interrupt vector PCINT1
+// triggered by any logic change on enabled PCINTxx pins (inputs from host column strobe pins)
+ISR(PCINT1_vect)
+{
+ 452:	1f 92       	push	r1
+ 454:	0f 92       	push	r0
+ 456:	0f b6       	in	r0, 0x3f	; 63
+ 458:	0f 92       	push	r0
+ 45a:	11 24       	eor	r1, r1
+ 45c:	0f 93       	push	r16
+ 45e:	1f 93       	push	r17
+ 460:	2f 93       	push	r18
+ 462:	3f 93       	push	r19
+ 464:	4f 93       	push	r20
+ 466:	5f 93       	push	r21
+ 468:	6f 93       	push	r22
+ 46a:	7f 93       	push	r23
+ 46c:	8f 93       	push	r24
+ 46e:	9f 93       	push	r25
+ 470:	af 93       	push	r26
+ 472:	bf 93       	push	r27
+ 474:	ef 93       	push	r30
+ 476:	ff 93       	push	r31
+
+#if PB_COL_MASK != 0
+    retval |= PB_TO_COL(PINB);
+#endif
+#if PC_COL_MASK != 0
+    retval |= PC_TO_COL(PINC);
+ 478:	e6 b1       	in	r30, 0x06	; 6
+ 47a:	ef 73       	andi	r30, 0x3F	; 63
+#endif
+#if PD_COL_MASK != 0
+    retval |= PD_TO_COL(PIND);
+#endif
+
+    seenColumnsHigh |= retval;         // DEBUG
+ 47c:	80 91 62 01 	lds	r24, 0x0162
+ 480:	8e 2b       	or	r24, r30
+ 482:	80 93 62 01 	sts	0x0162, r24
+    seenColumnsHigh |= UNUSED_COLUMNS_MASK;
+ 486:	80 91 62 01 	lds	r24, 0x0162
+ 48a:	80 6c       	ori	r24, 0xC0	; 192
+ 48c:	80 93 62 01 	sts	0x0162, r24
+    seenColumnsLow  &= retval;
+ 490:	80 91 00 01 	lds	r24, 0x0100
+ 494:	8e 23       	and	r24, r30
+ 496:	80 93 00 01 	sts	0x0100, r24
+    seenColumnsLow  &= ~UNUSED_COLUMNS_MASK;
+ 49a:	80 91 00 01 	lds	r24, 0x0100
+ 49e:	8f 73       	andi	r24, 0x3F	; 63
+ 4a0:	80 93 00 01 	sts	0x0100, r24
+ 4a4:	40 91 1b 01 	lds	r20, 0x011B
+
+    static column_mask_t lastColumnInputs;
+    static mask_t quiescentState;
+
+again:
+    columnInputs ^= quiescentState; // invert if necessary
+ 4a8:	e4 27       	eor	r30, r20
+    columnInputs &= ~UNUSED_COLUMNS_MASK; // ignore unused columns
+ 4aa:	0e 2f       	mov	r16, r30
+ 4ac:	0f 73       	andi	r16, 0x3F	; 63
+static uint8_t countBits(uint8_t number, uint8_t *lastBitnumSet)
+{
+    uint8_t numberSet;
+    uint8_t highestBit;
+    uint8_t nybble       = number & 0x0F;
+    BitDecode_t const *p = usedBits + nybble;
+ 4ae:	ef 70       	andi	r30, 0x0F	; 15
+ 4b0:	f0 e0       	ldi	r31, 0x00	; 0
+ 4b2:	ee 5f       	subi	r30, 0xFE	; 254
+ 4b4:	fe 4f       	sbci	r31, 0xFE	; 254
+
+    if ((numberSet = p->nBits))
+ 4b6:	60 81       	ld	r22, Z
+ 4b8:	96 2f       	mov	r25, r22
+ 4ba:	9f 70       	andi	r25, 0x0F	; 15
+ 4bc:	11 f4       	brne	.+4      	; 0x4c2 <__vector_4+0x70>
+ 4be:	10 e0       	ldi	r17, 0x00	; 0
+ 4c0:	03 c0       	rjmp	.+6      	; 0x4c8 <__vector_4+0x76>
+    {
+        highestBit = p->highestBit;
+ 4c2:	16 2f       	mov	r17, r22
+ 4c4:	12 95       	swap	r17
+ 4c6:	1f 70       	andi	r17, 0x0F	; 15
+    }
+
+    number >>= 4;
+    p        = usedBits + number;
+ 4c8:	e0 2f       	mov	r30, r16
+ 4ca:	e2 95       	swap	r30
+ 4cc:	ef 70       	andi	r30, 0x0F	; 15
+ 4ce:	f0 e0       	ldi	r31, 0x00	; 0
+ 4d0:	ee 5f       	subi	r30, 0xFE	; 254
+ 4d2:	fe 4f       	sbci	r31, 0xFE	; 254
+
+    uint8_t nb;
+    if ((nb = p->nBits))
+ 4d4:	e0 81       	ld	r30, Z
+ 4d6:	8e 2f       	mov	r24, r30
+ 4d8:	8f 70       	andi	r24, 0x0F	; 15
+ 4da:	31 f0       	breq	.+12     	; 0x4e8 <__vector_4+0x96>
+    {
+        numberSet += nb;
+ 4dc:	98 0f       	add	r25, r24
+        highestBit = 4 + p->highestBit;
+ 4de:	1e 2f       	mov	r17, r30
+ 4e0:	12 95       	swap	r17
+ 4e2:	1f 70       	andi	r17, 0x0F	; 15
+ 4e4:	1c 5f       	subi	r17, 0xFC	; 252
+ 4e6:	03 c0       	rjmp	.+6      	; 0x4ee <__vector_4+0x9c>
+    }
+
+    if (numberSet)
+ 4e8:	99 23       	and	r25, r25
+ 4ea:	09 f4       	brne	.+2      	; 0x4ee <__vector_4+0x9c>
+ 4ec:	43 c0       	rjmp	.+134    	; 0x574 <__stack+0x75>
+    columnInputs &= ~UNUSED_COLUMNS_MASK; // ignore unused columns
+
+    uint8_t activeColumn = 0;
+    uint8_t nSetBits     = countBits(columnInputs, &activeColumn);
+
+    switch (nSetBits)
+ 4ee:	91 30       	cpi	r25, 0x01	; 1
+ 4f0:	51 f0       	breq	.+20     	; 0x506 <__stack+0x7>
+ 4f2:	91 30       	cpi	r25, 0x01	; 1
+ 4f4:	08 f4       	brcc	.+2      	; 0x4f8 <__vector_4+0xa6>
+ 4f6:	3e c0       	rjmp	.+124    	; 0x574 <__stack+0x75>
+ 4f8:	95 30       	cpi	r25, 0x05	; 5
+ 4fa:	09 f4       	brne	.+2      	; 0x4fe <__vector_4+0xac>
+ 4fc:	42 c0       	rjmp	.+132    	; 0x582 <__stack+0x83>
+ 4fe:	96 30       	cpi	r25, 0x06	; 6
+ 500:	09 f0       	breq	.+2      	; 0x504 <__stack+0x5>
+ 502:	44 c0       	rjmp	.+136    	; 0x58c <__stack+0x8d>
+ 504:	42 c0       	rjmp	.+132    	; 0x58a <__stack+0x8b>
+ 506:	40 93 1b 01 	sts	0x011B, r20
+static row_mask_t readRowStates(void)
+{
+    uint8_t retval = 0;
+
+#if PB_ROW_MASK != 0
+    uint8_t oldDDRB  = DDRB;                    // save direction
+ 50a:	24 b1       	in	r18, 0x04	; 4
+    DDRB    = oldDDRB & ~PB_ROW_MASK;   // reset DDR for inputs
+ 50c:	82 2f       	mov	r24, r18
+ 50e:	8c 7f       	andi	r24, 0xFC	; 252
+ 510:	84 b9       	out	0x04, r24	; 4
+#if PC_ROW_MASK != 0
+    uint8_t oldDDRC  = DDRC;                    // save direction
+    DDRC    = oldDDRC & ~PC_ROW_MASK;   // reset DDR for inputs
+#endif
+#if PD_ROW_MASK != 0
+    uint8_t oldDDRD  = DDRD;                    // save direction
+ 512:	3a b1       	in	r19, 0x0a	; 10
+    DDRD    = oldDDRD & ~PD_ROW_MASK;   // reset DDR for inputs
+ 514:	83 2f       	mov	r24, r19
+ 516:	83 70       	andi	r24, 0x03	; 3
+ 518:	8a b9       	out	0x0a, r24	; 10
+    can be achieved.
+*/
+void
+_delay_loop_1(uint8_t __count)
+{
+	__asm__ volatile (
+ 51a:	8a e1       	ldi	r24, 0x1A	; 26
+ 51c:	8a 95       	dec	r24
+ 51e:	f1 f7       	brne	.-4      	; 0x51c <__stack+0x1d>
+#endif
+
+    _delay_us(10);
+
+#if PB_ROW_MASK != 0
+    retval |= PB_TO_ROW(PINB);         // and read current values
+ 520:	93 b1       	in	r25, 0x03	; 3
+ 522:	92 95       	swap	r25
+ 524:	99 0f       	add	r25, r25
+ 526:	99 0f       	add	r25, r25
+ 528:	90 7c       	andi	r25, 0xC0	; 192
+    DDRB    = oldDDRB;                  // restore direction
+ 52a:	24 b9       	out	0x04, r18	; 4
+#if PC_ROW_MASK != 0
+    retval |= PC_TO_ROW(PINC);         // and read current values
+    DDRC    = oldDDRC;                  // restore direction
+#endif
+#if PD_ROW_MASK != 0
+    retval |= PD_TO_ROW(PIND);         // and read current values
+ 52c:	89 b1       	in	r24, 0x09	; 9
+ 52e:	86 95       	lsr	r24
+ 530:	86 95       	lsr	r24
+ 532:	98 2b       	or	r25, r24
+    DDRD    = oldDDRD;                  // restore direction
+ 534:	3a b9       	out	0x0a, r19	; 10
+#endif
+
+    seenRowsHigh |= retval;            // DEBUG
+ 536:	80 91 71 01 	lds	r24, 0x0171
+ 53a:	89 2b       	or	r24, r25
+ 53c:	80 93 71 01 	sts	0x0171, r24
+    seenRowsHigh |= UNUSED_ROWS_MASK;
+ 540:	80 91 71 01 	lds	r24, 0x0171
+ 544:	80 93 71 01 	sts	0x0171, r24
+    seenRowsLow  &= retval;
+ 548:	80 91 01 01 	lds	r24, 0x0101
+ 54c:	89 23       	and	r24, r25
+ 54e:	80 93 01 01 	sts	0x0101, r24
+    seenRowsLow  &= ~UNUSED_ROWS_MASK;
+ 552:	80 91 01 01 	lds	r24, 0x0101
+ 556:	80 93 01 01 	sts	0x0101, r24
+        case 1:		// single active column line
+        {
+            // read the row inputs and convert to logical levels (1 == active)
+            row_mask_t rowInputs = readRowStates() ^ quiescentState;
+            // handle transitions and report on changes
+            processRowInputs(rowInputs, activeColumn);
+ 55a:	84 2f       	mov	r24, r20
+ 55c:	89 27       	eor	r24, r25
+ 55e:	61 2f       	mov	r22, r17
+ 560:	0e 94 e0 01 	call	0x3c0	; 0x3c0 <processRowInputs>
+            // now force any switches that we're forcing
+            assertRowOutputs(forcedSwitches[activeColumn], quiescentState);
+ 564:	e1 2f       	mov	r30, r17
+ 566:	f0 e0       	ldi	r31, 0x00	; 0
+ 568:	e6 59       	subi	r30, 0x96	; 150
+ 56a:	fe 4f       	sbci	r31, 0xFE	; 254
+ 56c:	80 81       	ld	r24, Z
+ 56e:	60 91 1b 01 	lds	r22, 0x011B
+ 572:	04 c0       	rjmp	.+8      	; 0x57c <__stack+0x7d>
+        }
+        break;
+ 574:	40 93 1b 01 	sts	0x011B, r20
+
+        case 0:                        // no active column lines
+            // set all row outputs as inputs
+            assertRowOutputs(0, 0);
+ 578:	80 e0       	ldi	r24, 0x00	; 0
+ 57a:	60 e0       	ldi	r22, 0x00	; 0
+ 57c:	0e 94 7f 00 	call	0xfe	; 0xfe <assertRowOutputs>
+ 580:	07 c0       	rjmp	.+14     	; 0x590 <__stack+0x91>
+            break;
+
+        case N_COLUMNS - 1:            // quiescent state wrong; one active
+            columnInputs  ^= quiescentState; // restore flipped bits
+ 582:	e0 2f       	mov	r30, r16
+ 584:	e4 27       	eor	r30, r20
+            quiescentState = ~quiescentState;
+ 586:	40 95       	com	r20
+ 588:	8f cf       	rjmp	.-226    	; 0x4a8 <__vector_4+0x56>
+            goto again;
+            break;
+
+        case N_COLUMNS:                // quiescent state wrong; nothing active
+            quiescentState = ~quiescentState;
+ 58a:	40 95       	com	r20
+ 58c:	40 93 1b 01 	sts	0x011B, r20
+            break;
+    }
+
+    // remember last column scan
+    lastColumnInputs = columnInputs;
+ 590:	00 93 1c 01 	sts	0x011C, r16
+}
+ 594:	ff 91       	pop	r31
+ 596:	ef 91       	pop	r30
+ 598:	bf 91       	pop	r27
+ 59a:	af 91       	pop	r26
+ 59c:	9f 91       	pop	r25
+ 59e:	8f 91       	pop	r24
+ 5a0:	7f 91       	pop	r23
+ 5a2:	6f 91       	pop	r22
+ 5a4:	5f 91       	pop	r21
+ 5a6:	4f 91       	pop	r20
+ 5a8:	3f 91       	pop	r19
+ 5aa:	2f 91       	pop	r18
+ 5ac:	1f 91       	pop	r17
+ 5ae:	0f 91       	pop	r16
+ 5b0:	0f 90       	pop	r0
+ 5b2:	0f be       	out	0x3f, r0	; 63
+ 5b4:	0f 90       	pop	r0
+ 5b6:	1f 90       	pop	r1
+ 5b8:	18 95       	reti
+
+000005ba <__vector_16>:
+    return numberSet;
+}
+
+// 30.5 Hz periodic interrupt
+ISR(TIMER0_OVF_vect)
+{
+ 5ba:	1f 92       	push	r1
+ 5bc:	0f 92       	push	r0
+ 5be:	0f b6       	in	r0, 0x3f	; 63
+ 5c0:	0f 92       	push	r0
+ 5c2:	11 24       	eor	r1, r1
+ 5c4:	2f 93       	push	r18
+ 5c6:	3f 93       	push	r19
+ 5c8:	4f 93       	push	r20
+ 5ca:	5f 93       	push	r21
+ 5cc:	6f 93       	push	r22
+ 5ce:	7f 93       	push	r23
+ 5d0:	8f 93       	push	r24
+ 5d2:	9f 93       	push	r25
+ 5d4:	af 93       	push	r26
+ 5d6:	bf 93       	push	r27
+ 5d8:	ef 93       	push	r30
+ 5da:	ff 93       	push	r31
+{
+    uint8_t bit;
+    row_mask_t retval = 0;
+
+#if N_AUX_OUTPUTS >= 1
+    uint8_t oldDDR0      = AUX0_DDREG;
+ 5dc:	94 b1       	in	r25, 0x04	; 4
+    AUX0_DDREG &= ~AUX0_MASK;          // set as input
+ 5de:	22 98       	cbi	0x04, 2	; 4
+ 5e0:	8a e1       	ldi	r24, 0x1A	; 26
+ 5e2:	8a 95       	dec	r24
+ 5e4:	f1 f7       	brne	.-4      	; 0x5e2 <__vector_16+0x28>
+#endif
+
+    _delay_us(10);
+
+#if N_AUX_OUTPUTS >= 1
+    bit         = AUX0_PINREG & AUX0_MASK; // read input
+ 5e6:	83 b1       	in	r24, 0x03	; 3
+    if (!AUX0_ON_STATE)                // invert if active low
+    {
+        bit ^= AUX0_MASK;
+    }
+    AUX0_DDREG = oldDDR0;
+ 5e8:	94 b9       	out	0x04, r25	; 4
+
+// 30.5 Hz periodic interrupt
+ISR(TIMER0_OVF_vect)
+{
+    // read aux switches
+    processRowInputs(readAuxSwitchStates(), N_COLUMNS);
+ 5ea:	90 e0       	ldi	r25, 0x00	; 0
+ 5ec:	82 ff       	sbrs	r24, 2
+ 5ee:	91 e0       	ldi	r25, 0x01	; 1
+ 5f0:	89 2f       	mov	r24, r25
+ 5f2:	66 e0       	ldi	r22, 0x06	; 6
+ 5f4:	0e 94 e0 01 	call	0x3c0	; 0x3c0 <processRowInputs>
+    // handle forced aux switches
+    assertAuxOutputs(forcedSwitches[N_COLUMNS]);
+ 5f8:	80 91 70 01 	lds	r24, 0x0170
+// leaves DDRx bits set
+// CALLED FROM timer tick ISR
+static void assertAuxOutputs(row_mask_t mask)
+{
+#if N_AUX_OUTPUTS >= 1
+    if (mask & 1)
+ 5fc:	80 ff       	sbrs	r24, 0
+ 5fe:	03 c0       	rjmp	.+6      	; 0x606 <__vector_16+0x4c>
+        {
+            AUX0_PORTREG |= AUX0_MASK;
+        }
+        else
+        {
+            AUX0_PORTREG &= ~AUX0_MASK;
+ 600:	2a 98       	cbi	0x05, 2	; 5
+        }
+        AUX0_DDREG |= AUX0_MASK;       // set as output
+ 602:	22 9a       	sbi	0x04, 2	; 4
+ 604:	02 c0       	rjmp	.+4      	; 0x60a <__vector_16+0x50>
+    }
+    else
+    {
+        AUX0_PORTREG &= ~AUX0_MASK; // ensure pullups off
+ 606:	2a 98       	cbi	0x05, 2	; 5
+        AUX0_DDREG   &= ~AUX0_MASK;    // set as input
+ 608:	22 98       	cbi	0x04, 2	; 4
+{
+    // read aux switches
+    processRowInputs(readAuxSwitchStates(), N_COLUMNS);
+    // handle forced aux switches
+    assertAuxOutputs(forcedSwitches[N_COLUMNS]);
+}
+ 60a:	ff 91       	pop	r31
+ 60c:	ef 91       	pop	r30
+ 60e:	bf 91       	pop	r27
+ 610:	af 91       	pop	r26
+ 612:	9f 91       	pop	r25
+ 614:	8f 91       	pop	r24
+ 616:	7f 91       	pop	r23
+ 618:	6f 91       	pop	r22
+ 61a:	5f 91       	pop	r21
+ 61c:	4f 91       	pop	r20
+ 61e:	3f 91       	pop	r19
+ 620:	2f 91       	pop	r18
+ 622:	0f 90       	pop	r0
+ 624:	0f be       	out	0x3f, r0	; 63
+ 626:	0f 90       	pop	r0
+ 628:	1f 90       	pop	r1
+ 62a:	18 95       	reti
+
+0000062c <__vector_18>:
+SIGNAL(UART0_RECEIVE_INTERRUPT)
+/*************************************************************************
+Function: UART Receive Complete interrupt
+Purpose:  called when the UART has received a character
+**************************************************************************/
+{
+ 62c:	1f 92       	push	r1
+ 62e:	0f 92       	push	r0
+ 630:	0f b6       	in	r0, 0x3f	; 63
+ 632:	0f 92       	push	r0
+ 634:	11 24       	eor	r1, r1
+ 636:	2f 93       	push	r18
+ 638:	8f 93       	push	r24
+ 63a:	9f 93       	push	r25
+ 63c:	ef 93       	push	r30
+ 63e:	ff 93       	push	r31
+    unsigned char usr;
+    unsigned char lastRxError;
+ 
+ 
+    /* read UART status register and UART data register */ 
+    usr  = UART0_STATUS;
+ 640:	90 91 c0 00 	lds	r25, 0x00C0
+    data = UART0_DATA;
+ 644:	20 91 c6 00 	lds	r18, 0x00C6
+#elif defined ( ATMEGA_UART )
+    lastRxError = (usr & (_BV(FE)|_BV(DOR)) );
+#endif
+        
+    /* calculate buffer index */ 
+    tmphead = ( UART_RxHead + 1) & UART_RX_BUFFER_MASK;
+ 648:	e0 91 5f 01 	lds	r30, 0x015F
+ 64c:	ef 5f       	subi	r30, 0xFF	; 255
+ 64e:	ef 71       	andi	r30, 0x1F	; 31
+    
+    if ( tmphead == UART_RxTail ) {
+ 650:	80 91 60 01 	lds	r24, 0x0160
+ 654:	e8 17       	cp	r30, r24
+ 656:	11 f4       	brne	.+4      	; 0x65c <__vector_18+0x30>
+ 658:	82 e0       	ldi	r24, 0x02	; 2
+ 65a:	08 c0       	rjmp	.+16     	; 0x66c <__vector_18+0x40>
+#if defined( AT90_UART )
+    lastRxError = (usr & (_BV(FE)|_BV(DOR)) );
+#elif defined( ATMEGA_USART )
+    lastRxError = (usr & (_BV(FE)|_BV(DOR)) );
+#elif defined( ATMEGA_USART0 )
+    lastRxError = (usr & (_BV(FE0)|_BV(DOR0)) );
+ 65c:	89 2f       	mov	r24, r25
+ 65e:	88 71       	andi	r24, 0x18	; 24
+    if ( tmphead == UART_RxTail ) {
+        /* error: receive buffer overflow */
+        lastRxError = UART_BUFFER_OVERFLOW >> 8;
+    }else{
+        /* store new index */
+        UART_RxHead = tmphead;
+ 660:	e0 93 5f 01 	sts	0x015F, r30
+        /* store received data in buffer */
+        UART_RxBuf[tmphead] = data;
+ 664:	f0 e0       	ldi	r31, 0x00	; 0
+ 666:	e3 5c       	subi	r30, 0xC3	; 195
+ 668:	fe 4f       	sbci	r31, 0xFE	; 254
+ 66a:	20 83       	st	Z, r18
+    }
+    UART_LastRxError = lastRxError;   
+ 66c:	80 93 61 01 	sts	0x0161, r24
+}
+ 670:	ff 91       	pop	r31
+ 672:	ef 91       	pop	r30
+ 674:	9f 91       	pop	r25
+ 676:	8f 91       	pop	r24
+ 678:	2f 91       	pop	r18
+ 67a:	0f 90       	pop	r0
+ 67c:	0f be       	out	0x3f, r0	; 63
+ 67e:	0f 90       	pop	r0
+ 680:	1f 90       	pop	r1
+ 682:	18 95       	reti
+
+00000684 <__vector_19>:
+SIGNAL(UART0_TRANSMIT_INTERRUPT)
+/*************************************************************************
+Function: UART Data Register Empty interrupt
+Purpose:  called when the UART is ready to transmit the next byte
+**************************************************************************/
+{
+ 684:	1f 92       	push	r1
+ 686:	0f 92       	push	r0
+ 688:	0f b6       	in	r0, 0x3f	; 63
+ 68a:	0f 92       	push	r0
+ 68c:	11 24       	eor	r1, r1
+ 68e:	8f 93       	push	r24
+ 690:	9f 93       	push	r25
+ 692:	ef 93       	push	r30
+ 694:	ff 93       	push	r31
+    unsigned char tmptail;
+
+    
+    if ( UART_TxHead != UART_TxTail) {
+ 696:	90 91 5d 01 	lds	r25, 0x015D
+ 69a:	80 91 5e 01 	lds	r24, 0x015E
+ 69e:	98 17       	cp	r25, r24
+ 6a0:	69 f0       	breq	.+26     	; 0x6bc <__vector_19+0x38>
+        /* calculate and store new buffer index */
+        tmptail = (UART_TxTail + 1) & UART_TX_BUFFER_MASK;
+ 6a2:	e0 91 5e 01 	lds	r30, 0x015E
+ 6a6:	ef 5f       	subi	r30, 0xFF	; 255
+ 6a8:	ef 71       	andi	r30, 0x1F	; 31
+        UART_TxTail = tmptail;
+ 6aa:	e0 93 5e 01 	sts	0x015E, r30
+        /* get one byte from buffer and write it to UART */
+        UART0_DATA = UART_TxBuf[tmptail];  /* start transmission */
+ 6ae:	f0 e0       	ldi	r31, 0x00	; 0
+ 6b0:	e3 5e       	subi	r30, 0xE3	; 227
+ 6b2:	fe 4f       	sbci	r31, 0xFE	; 254
+ 6b4:	80 81       	ld	r24, Z
+ 6b6:	80 93 c6 00 	sts	0x00C6, r24
+ 6ba:	05 c0       	rjmp	.+10     	; 0x6c6 <__vector_19+0x42>
+    }else{
+        /* tx buffer empty, disable UDRE interrupt */
+        UART0_CONTROL &= ~_BV(UART0_UDRIE);
+ 6bc:	80 91 c1 00 	lds	r24, 0x00C1
+ 6c0:	8f 7d       	andi	r24, 0xDF	; 223
+ 6c2:	80 93 c1 00 	sts	0x00C1, r24
+    }
+}
+ 6c6:	ff 91       	pop	r31
+ 6c8:	ef 91       	pop	r30
+ 6ca:	9f 91       	pop	r25
+ 6cc:	8f 91       	pop	r24
+ 6ce:	0f 90       	pop	r0
+ 6d0:	0f be       	out	0x3f, r0	; 63
+ 6d2:	0f 90       	pop	r0
+ 6d4:	1f 90       	pop	r1
+ 6d6:	18 95       	reti
+
+000006d8 <uart_init>:
+Purpose:  initialize UART and set baudrate
+Input:    baudrate using macro UART_BAUD_SELECT()
+Returns:  none
+**************************************************************************/
+void uart_init(unsigned int baudrate)
+{
+ 6d8:	9c 01       	movw	r18, r24
+    UART_TxHead = 0;
+ 6da:	10 92 5d 01 	sts	0x015D, r1
+    UART_TxTail = 0;
+ 6de:	10 92 5e 01 	sts	0x015E, r1
+    UART_RxHead = 0;
+ 6e2:	10 92 5f 01 	sts	0x015F, r1
+    UART_RxTail = 0;
+ 6e6:	10 92 60 01 	sts	0x0160, r1
+    UCSRC = (3<<UCSZ0);
+    #endif 
+    
+#elif defined (ATMEGA_USART0 )
+    /* Set baud rate */
+    if ( baudrate & 0x8000 ) 
+ 6ea:	97 ff       	sbrs	r25, 7
+ 6ec:	04 c0       	rjmp	.+8      	; 0x6f6 <uart_init+0x1e>
+    {
+   		UART0_STATUS = (1<<U2X0);  //Enable 2x speed 
+ 6ee:	82 e0       	ldi	r24, 0x02	; 2
+ 6f0:	80 93 c0 00 	sts	0x00C0, r24
+   		baudrate &= ~0x8000;
+ 6f4:	3f 77       	andi	r19, 0x7F	; 127
+   	}
+    UBRR0H = (unsigned char)(baudrate>>8);
+ 6f6:	30 93 c5 00 	sts	0x00C5, r19
+    UBRR0L = (unsigned char) baudrate;
+ 6fa:	20 93 c4 00 	sts	0x00C4, r18
+
+    /* Enable USART receiver and transmitter and receive complete interrupt */
+    UART0_CONTROL = _BV(RXCIE0)|(1<<RXEN0)|(1<<TXEN0);
+ 6fe:	88 e9       	ldi	r24, 0x98	; 152
+ 700:	80 93 c1 00 	sts	0x00C1, r24
+    
+    /* Set frame format: asynchronous, 8data, no parity, 1stop bit */
+    #ifdef URSEL0
+    UCSR0C = (1<<URSEL0)|(3<<UCSZ00);
+    #else
+    UCSR0C = (3<<UCSZ00);
+ 704:	86 e0       	ldi	r24, 0x06	; 6
+ 706:	80 93 c2 00 	sts	0x00C2, r24
+    /* Enable UART receiver and transmitter and receive complete interrupt */
+    UART0_CONTROL = _BV(RXCIE)|(1<<RXEN)|(1<<TXEN);
+
+#endif
+
+}/* uart_init */
+ 70a:	08 95       	ret
+
+0000070c <uart_getc>:
+{    
+    unsigned char tmptail;
+    unsigned char data;
+
+
+    if ( UART_RxHead == UART_RxTail ) {
+ 70c:	90 91 5f 01 	lds	r25, 0x015F
+ 710:	80 91 60 01 	lds	r24, 0x0160
+ 714:	98 17       	cp	r25, r24
+ 716:	19 f4       	brne	.+6      	; 0x71e <uart_getc+0x12>
+ 718:	20 e0       	ldi	r18, 0x00	; 0
+ 71a:	31 e0       	ldi	r19, 0x01	; 1
+ 71c:	12 c0       	rjmp	.+36     	; 0x742 <uart_getc+0x36>
+        return UART_NO_DATA;   /* no data available */
+    }
+    
+    /* calculate /store buffer index */
+    tmptail = (UART_RxTail + 1) & UART_RX_BUFFER_MASK;
+ 71e:	e0 91 60 01 	lds	r30, 0x0160
+ 722:	ef 5f       	subi	r30, 0xFF	; 255
+ 724:	ef 71       	andi	r30, 0x1F	; 31
+    UART_RxTail = tmptail; 
+ 726:	e0 93 60 01 	sts	0x0160, r30
+    
+    /* get data from receive buffer */
+    data = UART_RxBuf[tmptail];
+ 72a:	f0 e0       	ldi	r31, 0x00	; 0
+ 72c:	e3 5c       	subi	r30, 0xC3	; 195
+ 72e:	fe 4f       	sbci	r31, 0xFE	; 254
+ 730:	30 81       	ld	r19, Z
+    
+    return (UART_LastRxError << 8) + data;
+ 732:	20 91 61 01 	lds	r18, 0x0161
+ 736:	92 2f       	mov	r25, r18
+ 738:	80 e0       	ldi	r24, 0x00	; 0
+ 73a:	ac 01       	movw	r20, r24
+ 73c:	43 0f       	add	r20, r19
+ 73e:	51 1d       	adc	r21, r1
+ 740:	9a 01       	movw	r18, r20
+
+}/* uart_getc */
+ 742:	c9 01       	movw	r24, r18
+ 744:	08 95       	ret
+
+00000746 <uart_putc>:
+Purpose:  write byte to ringbuffer for transmitting via UART
+Input:    byte to be transmitted
+Returns:  none          
+**************************************************************************/
+void uart_putc(unsigned char data)
+{
+ 746:	28 2f       	mov	r18, r24
+    unsigned char tmphead;
+
+    
+    tmphead  = (UART_TxHead + 1) & UART_TX_BUFFER_MASK;
+ 748:	90 91 5d 01 	lds	r25, 0x015D
+ 74c:	9f 5f       	subi	r25, 0xFF	; 255
+ 74e:	9f 71       	andi	r25, 0x1F	; 31
+    
+    while ( tmphead == UART_TxTail ){
+ 750:	80 91 5e 01 	lds	r24, 0x015E
+ 754:	98 17       	cp	r25, r24
+ 756:	e1 f3       	breq	.-8      	; 0x750 <uart_putc+0xa>
+        ;/* wait for free space in buffer */
+    }
+    
+    UART_TxBuf[tmphead] = data;
+ 758:	e9 2f       	mov	r30, r25
+ 75a:	f0 e0       	ldi	r31, 0x00	; 0
+ 75c:	e3 5e       	subi	r30, 0xE3	; 227
+ 75e:	fe 4f       	sbci	r31, 0xFE	; 254
+ 760:	20 83       	st	Z, r18
+    UART_TxHead = tmphead;
+ 762:	90 93 5d 01 	sts	0x015D, r25
+
+    /* enable UDRE interrupt */
+    UART0_CONTROL    |= _BV(UART0_UDRIE);
+ 766:	80 91 c1 00 	lds	r24, 0x00C1
+ 76a:	80 62       	ori	r24, 0x20	; 32
+ 76c:	80 93 c1 00 	sts	0x00C1, r24
+
+}/* uart_putc */
+ 770:	08 95       	ret
+
+00000772 <uart_puts>:
+Purpose:  transmit string to UART
+Input:    string to be transmitted
+Returns:  none          
+**************************************************************************/
+void uart_puts(const char *s )
+{
+ 772:	cf 93       	push	r28
+ 774:	df 93       	push	r29
+ 776:	ec 01       	movw	r28, r24
+ 778:	03 c0       	rjmp	.+6      	; 0x780 <uart_puts+0xe>
+    while (*s) 
+      uart_putc(*s++);
+ 77a:	21 96       	adiw	r28, 0x01	; 1
+ 77c:	0e 94 a3 03 	call	0x746	; 0x746 <uart_putc>
+Input:    string to be transmitted
+Returns:  none          
+**************************************************************************/
+void uart_puts(const char *s )
+{
+    while (*s) 
+ 780:	88 81       	ld	r24, Y
+ 782:	88 23       	and	r24, r24
+ 784:	d1 f7       	brne	.-12     	; 0x77a <uart_puts+0x8>
+      uart_putc(*s++);
+
+}/* uart_puts */
+ 786:	df 91       	pop	r29
+ 788:	cf 91       	pop	r28
+ 78a:	08 95       	ret
+
+0000078c <uart_puts_p>:
+Purpose:  transmit string from program memory to UART
+Input:    program memory string to be transmitted
+Returns:  none
+**************************************************************************/
+void uart_puts_p(const char *progmem_s )
+{
+ 78c:	cf 93       	push	r28
+ 78e:	df 93       	push	r29
+ 790:	ec 01       	movw	r28, r24
+ 792:	02 c0       	rjmp	.+4      	; 0x798 <uart_puts_p+0xc>
+    register char c;
+    
+    while ( (c = pgm_read_byte(progmem_s++)) ) 
+      uart_putc(c);
+ 794:	0e 94 a3 03 	call	0x746	; 0x746 <uart_putc>
+ 798:	fe 01       	movw	r30, r28
+**************************************************************************/
+void uart_puts_p(const char *progmem_s )
+{
+    register char c;
+    
+    while ( (c = pgm_read_byte(progmem_s++)) ) 
+ 79a:	21 96       	adiw	r28, 0x01	; 1
+ 79c:	84 91       	lpm	r24, Z+
+ 79e:	88 23       	and	r24, r24
+ 7a0:	c9 f7       	brne	.-14     	; 0x794 <uart_puts_p+0x8>
+      uart_putc(c);
+
+}/* uart_puts_p */
+ 7a2:	df 91       	pop	r29
+ 7a4:	cf 91       	pop	r28
+ 7a6:	08 95       	ret
+
+000007a8 <_exit>:
+ 7a8:	f8 94       	cli
+
+000007aa <__stop_program>:
+ 7aa:	ff cf       	rjmp	.-2      	; 0x7aa <__stop_program>

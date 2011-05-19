@@ -273,7 +273,8 @@ AVRDUDE_PROGRAMMER = arduino
 
 # com1 = serial port. Use lpt1 to connect to parallel port.
 # AVRDUDE_PORT = usb # programmer connected to serial device
-AVRDUDE_PORT = /dev/cu.usbserial-A6007D0z -b 19200 
+usb_serial = $(firstword $(wildcard /dev/cu.usbserial*))
+AVRDUDE_PORT = $(usb_serial) -b 19200 
 
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 #AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep

@@ -563,6 +563,9 @@ static SerialCommandState processSerialCommand(void)
 					goto *0; // reset
 				}
 				break;
+			case '\r': // empty line: dump state
+	            dumpState();
+				break;
 			}
 
 			bytesReceived = 0; // reset counter
@@ -625,20 +628,15 @@ int main(void)
     sei();                             // enable IRQ globally
 
     // debug: print wakeup message
-    uart_puts_P("Hi there $Rev: 27 $\r\n");
+    uart_puts_P("RemoteKeyboard v1.0 by Ned Konz\r\n");
 
     // main loop: process serial commands and go to sleep
     for (;; )
     {
-        SerialCommandState err = processSerialCommand();
-        if (err == SERIAL_CMD_ERROR)
-        {
-            dumpState();
-            _delay_ms(1000);
-        }
+        processSerialCommand();
         // nothing else to do: go to sleep
-        // set_sleep_mode(SLEEP_MODE_IDLE);
-        // sleep_mode();
+        set_sleep_mode(SLEEP_MODE_IDLE);
+        sleep_mode();
     }
     return 0;
 }
