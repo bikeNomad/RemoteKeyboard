@@ -199,7 +199,7 @@ static row_mask_t readAuxSwitchStates(void)
 // to set all to inputs pass a 0
 // leaves DDRx set
 // CALLED FROM ISR
-static void assertRowOutputs(row_mask_t mask, row_mask_t polarity)
+static void assertRowOutputs(row_mask_t mask, row_mask_t quiescent)
 {
     uint8_t bits;
 
@@ -208,13 +208,13 @@ static void assertRowOutputs(row_mask_t mask, row_mask_t polarity)
     if (bits)
     {
         DDRB |= bits;                  // turn into outputs
-        if (polarity)
+        if (quiescent)
         {
-            PORTB |= bits;
+            PORTB &= ~bits;
         }
         else
         {
-            PORTB &= ~bits;
+            PORTB |= bits;
         }
     }
     else
@@ -228,13 +228,13 @@ static void assertRowOutputs(row_mask_t mask, row_mask_t polarity)
     if (bits)
     {
         DDRC |= bits;
-        if (polarity)
+        if (quiescent)
         {
-            PORTC |= bits;
+            PORTC &= ~bits;
         }
         else
         {
-            PORTC &= ~bits;
+            PORTC |= bits;
         }
     }
     else
@@ -248,13 +248,13 @@ static void assertRowOutputs(row_mask_t mask, row_mask_t polarity)
     if (bits)
     {
         DDRD |= bits;
-        if (polarity)
+        if (quiescent)
         {
-            PORTD |= bits;
+            PORTD &= ~bits;
         }
         else
         {
-            PORTD &= ~bits;
+            PORTD |= bits;
         }
     }
     else
@@ -319,7 +319,7 @@ static BitDecode_t const usedBits[16] =
     { 4, 3 },                          // F
 };
 
-#if 1
+#if 0
 // CALLED FROM ISR
 static uint8_t countBits(uint8_t number, uint8_t *lastBitnumSet)
 {
