@@ -70,26 +70,35 @@ static column_mask_t readColumnInputs(void)
 // CALLED FROM ISR
 static row_mask_t readRowStates(void)
 {
-    uint8_t oldDDR;
+    uint8_t oldDDRB, oldDDRC, oldDDRD;
     uint8_t retval = 0;
 
 #if PB_ROW_MASK != 0
-    oldDDR  = DDRB;                    // save direction
-    DDRB    = oldDDR & ~PB_ROW_MASK;   // reset DDR for inputs
-    retval |= PB_TO_ROW(PINB);         // and read current values
-    DDRB    = oldDDR;                  // restore direction
+    oldDDRB  = DDRB;                    // save direction
+    DDRB    = oldDDRB & ~PB_ROW_MASK;   // reset DDR for inputs
 #endif
 #if PC_ROW_MASK != 0
-    oldDDR  = DDRC;                    // save direction
-    DDRC    = oldDDR & ~PC_ROW_MASK;   // reset DDR for inputs
-    retval |= PC_TO_ROW(PINC);         // and read current values
-    DDRC    = oldDDR;                  // restore direction
+    oldDDRC  = DDRC;                    // save direction
+    DDRC    = oldDDRC & ~PC_ROW_MASK;   // reset DDR for inputs
 #endif
 #if PD_ROW_MASK != 0
-    oldDDR  = DDRD;                    // save direction
-    DDRD    = oldDDR & ~PD_ROW_MASK;   // reset DDR for inputs
+    oldDDRD  = DDRD;                    // save direction
+    DDRD    = oldDDRD & ~PD_ROW_MASK;   // reset DDR for inputs
+#endif
+
+    _delay_us(10);
+
+#if PB_ROW_MASK != 0
+    retval |= PB_TO_ROW(PINB);         // and read current values
+    DDRB    = oldDDRB;                  // restore direction
+#endif
+#if PC_ROW_MASK != 0
+    retval |= PC_TO_ROW(PINC);         // and read current values
+    DDRC    = oldDDRC;                  // restore direction
+#endif
+#if PD_ROW_MASK != 0
     retval |= PD_TO_ROW(PIND);         // and read current values
-    DDRD    = oldDDR;                  // restore direction
+    DDRD    = oldDDRD;                  // restore direction
 #endif
 
     seenRowsHigh |= retval;            // DEBUG
@@ -412,9 +421,6 @@ ISR(TIMER0_OVF_vect)
 // TODO debounce over entire period of strobe (or more).
 ISR(PCINT1_vect)
 {
-    // wait for things to settle
-    _delay_us(10);
-
     // get the column inputs (at least one of which has just changed)
     column_mask_t columnInputs = readColumnInputs();
 
