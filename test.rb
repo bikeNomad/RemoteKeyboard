@@ -1,7 +1,15 @@
+#!/usr/bin/env ruby
+#
+# Test program to control the "Brother P-touch Home & Hobby"
+# using the RemoteKeyboard AVR program
+# Ned Konz, ned@bike-nomad.com
+#
 require 'serialport'
 
 module RemoteKeyboard
-  class Interface
+
+  # Serial interface to RemoteKeyboard
+  class SerialInterface
     def initialize(_port, _baud)
       @port = SerialPort.new(_port, _baud, 8, 1, SerialPort::NONE)
     end
@@ -30,6 +38,7 @@ module RemoteKeyboard
     end
   end
 
+  # Representation of single key
   class Key
     @keys = {}
     class << self
