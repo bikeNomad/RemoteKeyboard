@@ -161,7 +161,8 @@ typedef enum
     SERIAL_CMD_ERROR
 } SerialCommandState;
 
-// extern void pressSwitch(uint8_t row, uint8_t column);
-// extern void releaseSwitch(uint8_t row, uint8_t column);
+// external API:
+extern void pressSwitch(uint8_t row, uint8_t column);
+extern void releaseSwitch(uint8_t row, uint8_t column);
 
 #endif  /* INCLUDED_REMOTE_KEYBOARD_H */

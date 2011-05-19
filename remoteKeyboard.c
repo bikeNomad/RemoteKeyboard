@@ -148,32 +148,39 @@ static void processRowInputs(row_mask_t rowInputs, uint8_t activeColumn)
 // CALLED FROM ISR
 static row_mask_t readAuxSwitchStates(void)
 {
-    uint8_t oldDDR, bit;
+    uint8_t bit;
     row_mask_t retval = 0;
 
 #if N_AUX_OUTPUTS >= 1
-    oldDDR      = AUX0_DDREG;
+    uint8_t oldDDR0      = AUX0_DDREG;
     AUX0_DDREG &= ~AUX0_MASK;          // set as input
+#endif
+#if N_AUX_OUTPUTS >= 2
+    uint8_t oldDDR1      = AUX1_DDREG;
+    AUX1_DDREG &= ~AUX1_MASK;          // set as input
+#endif
+
+    _delay_us(10);
+
+#if N_AUX_OUTPUTS >= 1
     bit         = AUX0_PINREG & AUX0_MASK; // read input
     if (!AUX0_ON_STATE)                // invert if active low
     {
         bit ^= AUX0_MASK;
     }
-    AUX0_DDREG = oldDDR;
+    AUX0_DDREG = oldDDR0;
     if (bit)
     {
         retval = 0x01;
     }
 #endif
 #if N_AUX_OUTPUTS >= 2
-    oldDDR      = AUX1_DDREG;
-    AUX1_DDREG &= ~AUX1_MASK;          // set as input
     bit         = AUX1_PINREG & AUX1_MASK; // read input
     if (!AUX1_ON_STATE)                // invert if active low
     {
         bit ^= AUX1_MASK;
     }
-    AUX1_DDREG = oldDDR;
+    AUX1_DDREG = oldDDR1;
     if (bit)
     {
         retval |= 0x02;
@@ -184,8 +191,8 @@ static row_mask_t readAuxSwitchStates(void)
 }
 
 // set row outputs corresponding to bits in mask as outputs
-// polarity=1: set PORTx bits in mask
-// polarity=0: reset PORTx bits in mask
+// quiescent=0: set PORTx bits in mask
+// quiescent=1: reset PORTx bits in mask
 // to set all to inputs pass a 0
 // leaves DDRx set
 // CALLED FROM ISR
@@ -195,6 +202,8 @@ static void assertRowOutputs(row_mask_t mask, row_mask_t quiescent)
 
 #if PB_ROW_MASK != 0
     bits = PB_FROM_ROW(mask);
+    DDRB  &= ~PB_ROW_MASK;         // reset to inputs
+    PORTB &= ~PB_ROW_MASK;         // and don't pull up
     if (bits)
     {
         DDRB |= bits;                  // turn into outputs
@@ -207,14 +216,11 @@ static void assertRowOutputs(row_mask_t mask, row_mask_t quiescent)
             PORTB |= bits;
         }
     }
-    else
-    {
-        DDRB  &= ~PB_ROW_MASK;         // reset to inputs
-        PORTB &= ~PB_ROW_MASK;         // and don't pull up
-    }
 #endif
 #if PC_ROW_MASK != 0
     bits = PC_FROM_ROW(mask);
+    DDRC  &= ~PC_ROW_MASK;         // reset to inputs
+    PORTC &= ~PC_ROW_MASK;         // and don't pull up
     if (bits)
     {
         DDRC |= bits;
@@ -227,14 +233,11 @@ static void assertRowOutputs(row_mask_t mask, row_mask_t quiescent)
             PORTC |= bits;
         }
     }
-    else
-    {
-        DDRC  &= ~PC_ROW_MASK;         // reset to inputs
-        PORTC &= ~PC_ROW_MASK;         // and don't pull up
-    }
 #endif
 #if PD_ROW_MASK != 0
     bits = PD_FROM_ROW(mask);
+    DDRD  &= ~PD_ROW_MASK;         // reset to inputs
+    PORTD &= ~PD_ROW_MASK;         // and don't pull up
     if (bits)
     {
         DDRD |= bits;
@@ -246,11 +249,6 @@ static void assertRowOutputs(row_mask_t mask, row_mask_t quiescent)
         {
             PORTD |= bits;
         }
-    }
-    else
-    {
-        DDRD  &= ~PD_ROW_MASK;         // reset to inputs
-        PORTD &= ~PD_ROW_MASK;         // and don't pull up
     }
 #endif
 }
@@ -279,6 +277,25 @@ static void assertAuxOutputs(row_mask_t mask)
     {
         AUX0_PORTREG &= ~AUX0_MASK; // ensure pullups off
         AUX0_DDREG   &= ~AUX0_MASK;    // set as input
+    }
+#endif
+#if N_AUX_OUTPUTS >= 2
+    if (mask & 2)
+    {
+        if (AUX1_ON_STATE)
+        {
+            AUX1_PORTREG |= AUX1_MASK;
+        }
+        else
+        {
+            AUX1_PORTREG &= ~AUX1_MASK;
+        }
+        AUX1_DDREG |= AUX1_MASK;       // set as output
+    }
+    else
+    {
+        AUX1_PORTREG &= ~AUX1_MASK; // ensure pullups off
+        AUX1_DDREG   &= ~AUX1_MASK;    // set as input
     }
 #endif
 }
@@ -351,7 +368,6 @@ ISR(TIMER0_OVF_vect)
 
 // pin change interrupt vector PCINT1
 // triggered by any logic change on enabled PCINTxx pins (inputs from host column strobe pins)
-// TODO debounce over entire period of strobe (or more).
 ISR(PCINT1_vect)
 {
     // get the column inputs (at least one of which has just changed)
@@ -369,7 +385,7 @@ again:
 
     switch (nSetBits)
     {
-        case 1:
+        case 1:		// single active column line
         {
             // read the row inputs and convert to logical levels (1 == active)
             row_mask_t rowInputs = readRowStates() ^ quiescentState;
@@ -436,12 +452,12 @@ static void dumpState(void)
     }
 }
 
-static void pressSwitch(uint8_t row, uint8_t column)
+void pressSwitch(uint8_t row, uint8_t column)
 {
     forcedSwitches[column] |= (1 << row);
 }
 
-static void releaseSwitch(uint8_t row, uint8_t column)
+void releaseSwitch(uint8_t row, uint8_t column)
 {
     forcedSwitches[column] &= ~(1 << row);
 }
@@ -498,53 +514,64 @@ error:
 
 static SerialCommandState processSerialCommand(void)
 {
-    static char command[8];
-    static uint8_t bytesReceived;
+	static char command[8];
+	static uint8_t bytesReceived;
 
-    // while there's still data to read
-    // and no errors
-    while ((bytesReceived < sizeof (command) - 1))
-    {
-        unsigned int c = uart_getc();
-        if ((c & 0xFF00) == 0)
-        {
-            command[bytesReceived++] = (uint8_t)c;
-        }
-        else
-        {
-            // serial error or no data?
-            if ((c & 0xFF00) == UART_NO_DATA)
-                return SERIAL_CMD_INCOMPLETE;
-            else
-                return SERIAL_CMD_ERROR;
-        }
-        if (c == '\r')		// gotten a full command line?
-        {
-            SerialCommandState retval = SERIAL_CMD_ERROR;
-            if ((bytesReceived == 2) && (command[0] == 'R'))
-            {
-                goto *0;               // reset
-            }
-            if (bytesReceived == 4)
-            {
-                command[3] = '\0';     // mark end of string
-                if (doPressOrReleaseRC(command) == 0)
-                {
-                    retval = SERIAL_CMD_OK; // on no error
-                }
-                else
-                {
-                    uart_puts(command);
-                    uart_puts_P("?\r\n");
-                }
-            }
-            bytesReceived = 0;         // reset counter
-            return retval;
-        }
-    }
-    // here when buffer is full
-    bytesReceived = 0;
-    return SERIAL_CMD_ERROR;
+	// while there's still data to read
+	// and no errors
+	while ((bytesReceived < sizeof(command) - 1))
+	{
+		unsigned int c = uart_getc();
+		if ((c & 0xFF00) == 0)
+		{
+			command[bytesReceived++] = (uint8_t) c;
+		}
+		else
+		{
+			// serial error or no data?
+			if ((c & 0xFF00) == UART_NO_DATA)
+				return SERIAL_CMD_INCOMPLETE;
+			else
+				return SERIAL_CMD_ERROR;
+		}
+		if (c == '\r') // gotten a full command line?
+		{
+			SerialCommandState retval = SERIAL_CMD_ERROR;
+
+			switch (command[0])
+			{
+			case 'p': // press
+				// fall through
+			case 'r': // release
+				if (bytesReceived == 4)
+				{
+					command[3] = '\0'; // mark end of string
+					if (doPressOrReleaseRC(command) == 0)
+					{
+						retval = SERIAL_CMD_OK; // on no error
+					}
+					else
+					{
+						uart_puts(command);
+						uart_puts_P("?\r\n");
+					}
+				}
+				break;
+			case 'R': // reset
+				if (bytesReceived == 2)
+				{
+					goto *0; // reset
+				}
+				break;
+			}
+
+			bytesReceived = 0; // reset counter
+			return retval;
+		}
+	}
+	// here when buffer is full
+	bytesReceived = 0;
+	return SERIAL_CMD_ERROR;
 }
 
 static void initIO(void)
