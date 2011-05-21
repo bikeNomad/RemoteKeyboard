@@ -231,5 +231,8 @@ depend:
 serial:
 	minicom -D $(AVRDUDE_PORT) -b $(BAUD)
 
-.PHONY: serial
+demo:
+	ruby ruby/test.rb
+
+.PHONY: serial demo
 
