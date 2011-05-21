@@ -229,10 +229,10 @@ depend:
 .PHONY:	all build elf hex eep lss sym program coff extcoff clean depend
 
 serial:
-	minicom -D $(AVRDUDE_PORT) -b $(BAUD)
+	@minicom -D $(AVRDUDE_PORT) -b $(BAUD)
 
 demo:
-	ruby ruby/test.rb
+	@ruby ruby/test.rb
 
 .PHONY: serial demo
 
