@@ -43,6 +43,8 @@ volatile column_mask_t seenColumnsLow = 0xFF;
 volatile row_mask_t seenRowsHigh;
 volatile row_mask_t seenRowsLow       = 0xFF;
 
+volatile uint16_t columnStrobes[N_COLUMNS];
+
 // LED flashing: bits shifted out from LS bit; 1 = LED ON
 // each bit is worth  LED_BIT_TICKS
 volatile uint8_t ledPattern;
@@ -392,7 +394,7 @@ ISR(PCINT1_vect)
     column_mask_t columnInputs = readColumnInputs();
 
     static column_mask_t lastColumnInputs;
-    static mask_t quiescentState;
+    static mask_t quiescentState = 0xFF;    // debug
 
 again:
     columnInputs ^= quiescentState; // invert if necessary
@@ -408,6 +410,7 @@ again:
             // read the row inputs and convert to logical levels (1 == active)
             row_mask_t rowInputs = readRowStates() ^ quiescentState;
             // handle transitions and report on changes
+            columnStrobes[activeColumn]++;  // DEBUG
             processRowInputs(rowInputs, activeColumn);
             // now force any switches that we're forcing
             assertRowOutputs(forcedSwitches[activeColumn], quiescentState);
@@ -456,7 +459,7 @@ static void dumpState(void)
     printHexByte(seenRowsHigh);
     uart_puts_P(" rlo: ");
     printHexByte(seenRowsLow);
-    uart_puts_P("\r\nCo Fo Ac Pr\r\n");
+    uart_puts_P("\r\nCo Fo Ac Pr CSTR\r\n");
     for (uint8_t i = 0; i <= N_COLUMNS; i++)
     {
         printHexByte(i);
@@ -466,7 +469,11 @@ static void dumpState(void)
         printHexByte(activeSwitches[i]);
         uart_putc(' ');
         printHexByte(priorActiveSwitches[i]);
+        uart_putc(' ');
+        printHexByte(columnStrobes[i] >> 8);
+        printHexByte(columnStrobes[i] & 0xFF);
         uart_puts_P("\r\n");
+        columnStrobes[i] = 0;   // reset count
     }
 }
 
