@@ -82,3 +82,16 @@ debugging
 columns read 0x3F
 	so no cases fire.
 	should probably mask with unused bits to 0x3F | 0xC0 => 0xFF
+
+
+52 (Lcode) blocks 55 (Q)
+	why only first column press seen?
+	or maybe: first press in a given column blocks others?
+	see multiple releases
+	should be p52 p55 r52 r55
+		is p52 r52 p55 r55 (second seen only after first released)
+	should be p52 p55 r55 r52
+		is p52 r52 (second not seen at all)
+	
+	Also not seen in dumpState (only one column on)
+		activeSwitches and priorActiveSwitches

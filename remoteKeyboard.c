@@ -15,6 +15,22 @@ FUSES =
 };
 #endif
 
+// forward declarations
+static column_mask_t readColumnInputs(void);
+static row_mask_t readRowStates(void);
+static void processRowInputs(row_mask_t rowInputs, uint8_t activeColumn);
+static row_mask_t readAuxSwitchStates(void);
+static void assertRowOutputs(row_mask_t mask, row_mask_t quiescent);
+static void assertAuxOutputs(row_mask_t mask);
+static uint8_t countBits(uint8_t number, uint8_t *lastBitnumSet);
+static void printHexByte(uint8_t );
+static void dumpState(void);
+static uint8_t doPressOrReleaseRC(char *command);
+static SerialCommandState processSerialCommand(void);
+static void initIO(void);
+static void initTimers(void);
+static void initPCInterrupts(void);
+
 // RAM storage:
 // bitmap for which switches are forced
 volatile row_mask_t forcedSwitches[N_COLUMNS+1];
@@ -63,30 +79,36 @@ static row_mask_t readRowStates(void)
 
 #if PB_ROW_MASK != 0
     uint8_t oldDDRB  = DDRB;                    // save direction
-    DDRB    = oldDDRB & ~PB_ROW_MASK;   // reset DDR for inputs
+    if (oldDDRB & PB_ROW_MASK)
+        DDRB    = oldDDRB & ~PB_ROW_MASK;   // reset DDR for inputs
 #endif
 #if PC_ROW_MASK != 0
     uint8_t oldDDRC  = DDRC;                    // save direction
-    DDRC    = oldDDRC & ~PC_ROW_MASK;   // reset DDR for inputs
+    if (oldDDRC & PC_ROW_MASK)
+        DDRC    = oldDDRC & ~PC_ROW_MASK;   // reset DDR for inputs
 #endif
 #if PD_ROW_MASK != 0
     uint8_t oldDDRD  = DDRD;                    // save direction
-    DDRD    = oldDDRD & ~PD_ROW_MASK;   // reset DDR for inputs
+    if (oldDDRD & PD_ROW_MASK)
+        DDRD    = oldDDRD & ~PD_ROW_MASK;   // reset DDR for inputs
 #endif
 
     _delay_us(10);
 
 #if PB_ROW_MASK != 0
     retval |= PB_TO_ROW(PINB);         // and read current values
-    DDRB    = oldDDRB;                  // restore direction
+    if (oldDDRB & PB_ROW_MASK)
+        DDRB    = oldDDRB;                  // restore direction
 #endif
 #if PC_ROW_MASK != 0
     retval |= PC_TO_ROW(PINC);         // and read current values
-    DDRC    = oldDDRC;                  // restore direction
+    if (oldDDRC & PC_ROW_MASK)
+        DDRC    = oldDDRC;                  // restore direction
 #endif
 #if PD_ROW_MASK != 0
     retval |= PD_TO_ROW(PIND);         // and read current values
-    DDRD    = oldDDRD;                  // restore direction
+    if (oldDDRD & PD_ROW_MASK)
+        DDRD    = oldDDRD;                  // restore direction
 #endif
 
     seenRowsHigh |= retval;            // DEBUG
@@ -121,8 +143,7 @@ static void processRowInputs(row_mask_t rowInputs, uint8_t activeColumn)
     row_mask_t changed2
         =activeSwitches[activeColumn] ^ priorActiveSwitches[activeColumn];
     // valid ones are ones that have just changed but were stable before that
-    // for at
-    // least one sample.
+    // for at least one sample.
     row_mask_t valid = changed2 & ~changed;
 
     row_mask_t mask  = 1;
@@ -300,39 +321,36 @@ static void assertAuxOutputs(row_mask_t mask)
 #endif
 }
 
-typedef struct
-{
-    uint8_t nBits : 4;
-    uint8_t highestBit : 4;
-} BitDecode_t;
-
-static BitDecode_t const usedBits[16] =
-{
-    { 0, 0 },                          // 0
-    { 1, 0 },                          // 1
-    { 1, 1 },                          // 2
-    { 2, 1 },                          // 3
-    { 1, 2 },                          // 4
-    { 2, 2 },                          // 5
-    { 2, 2 },                          // 6
-    { 3, 2 },                          // 7
-    { 1, 3 },                          // 8
-    { 2, 3 },                          // 9
-    { 2, 3 },                          // A
-    { 3, 3 },                          // B
-    { 2, 3 },                          // C
-    { 3, 3 },                          // D
-    { 3, 3 },                          // E
-    { 4, 3 },                          // F
-};
-
 // CALLED FROM ISR
 static uint8_t countBits(uint8_t number, uint8_t *lastBitnumSet)
 {
+    static struct BitDecode_t
+    {
+        uint8_t nBits : 4;
+        uint8_t highestBit : 4;
+    } const usedBits[16] = {
+        { 0, 0 },                          // 0
+        { 1, 0 },                          // 1
+        { 1, 1 },                          // 2
+        { 2, 1 },                          // 3
+        { 1, 2 },                          // 4
+        { 2, 2 },                          // 5
+        { 2, 2 },                          // 6
+        { 3, 2 },                          // 7
+        { 1, 3 },                          // 8
+        { 2, 3 },                          // 9
+        { 2, 3 },                          // A
+        { 3, 3 },                          // B
+        { 2, 3 },                          // C
+        { 3, 3 },                          // D
+        { 3, 3 },                          // E
+        { 4, 3 },                          // F
+    };
+
     uint8_t numberSet;
     uint8_t highestBit;
     uint8_t nybble       = number & 0x0F;
-    BitDecode_t const *p = usedBits + nybble;
+    struct BitDecode_t const *p = usedBits + nybble;
 
     if ((numberSet = p->nBits))
     {
