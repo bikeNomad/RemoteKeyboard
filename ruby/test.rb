@@ -43,102 +43,31 @@ module RemoteKeyboard
     end
   end
 
-  # Representation of single key
-  class Key
-    def initialize(_code, _str, _kbd)
-      @code = '%02d' % _code.to_i 
-      @str = _str
-      @pressed = false
-      @kbd = _kbd
-    end
-
-    attr_reader :str, :code
-
-    def pressed=(state)
-      @pressed = state
-    end
-
-    def pressed
-      @pressed
-    end
-
-    # returns string or nil if already pressed
-    def press
-      unless pressed
-        pressed= true
-        return "p" + @code + "\r"
-      end
-    end
-
-    # returns string or nil if already released
-    def release
-      if pressed
-        pressed= false
-        return "r" + @code + "\r"
-      end
-    end
-
-    def modify(s)
-      s
-    end
-  end
-
-  class ShiftKey < Key
-    def press
-      unless pressed
-        super
-        @kbd.shift(true)
-      end
-    end
-
-    def release
-      if pressed
-        super
-        @kbd.shift(false)
-      end
-    end
-  end
-
-  class TogglingShiftKey < ShiftKey
-  end
-
+  # keyboard with shift key, caps and num lock, and editing keys
   class Keyboard
-    @@keys = {}
-    @@shifted_keys = {}
 
     def initialize(_port, _baud)
       @serial = SerialInterface.new(_port, _baud)
-      @pressed = []
-      @forced = []
-      shift(false)
+      # code => string or symbol
+      # string or symbol => code
+      @unshiftedKeys = {}
+      # code => string or symbol
+      # string or symbol => code
+      @shiftedKeys = {}
+      @powerState = false
+      @shiftState = false
+      @capsLockState = false
+      @numLockState = false
     end
-
-    def shift(b)
-      if b
-        @currentKeys = @@shifted_keys
-      else
-        @currentKeys = @@keys
-      end
-    end
-
-    attr_reader :serial
 
     # interpret the output from the keyboard watcher
     def interpretKeyboard(str)
       interpreted = ''
       str.gsub!(/\s*([pr])(\d\d)\s*/) do |m|
-        key = @currentKeys[$2]
-        if key
-          if $1 == 'p'  # press
-            key.press
-            interpreted += key.str
-            @pressed << key
-          else # $1 == 'r' # release
-            key.release
-            @pressed.delete(key)
-          end
-        else
-          $stderr.puts("unknown key #{m.inspect}")
+        if $1 == 'p'  # press
+          interpreted += pressed($2).to_s
+        else # $1 == 'r' # release
+          released($2)
         end
         ''
       end
@@ -149,79 +78,170 @@ module RemoteKeyboard
     def driveKeyboard(str)
     end
 
-  end
+    def monitorKeyboard
+      serial.read_all_available_bytes
+      bytes = ''
+      last_ibytes = last_obytes = ''
+      last_str = ''
+      while true do
+        bytes += serial.read_all_available_bytes
+        str = ''
+        bytes.sub!("RemoteKeyboard v1.0 by Ned Konz\r\n", '')
+        bytes.gsub!("\x00", '')
+        if bytes.length > 0
+#          puts "IBYTES=#{bytes.inspect}" unless bytes == last_ibytes
+          last_ibytes = bytes
+          str, bytes = interpretKeyboard(bytes)
+#          puts "STR=#{str.inspect}" unless str == last_str
+#          puts "OBYTES=#{bytes.inspect}" unless bytes == last_obytes
+          print(str)
+        end
+        last_str = str
+        last_obytes = bytes
+      end
+    end
+
+  protected
+    attr_reader :serial
+
+    def add_key(keycode, unshifted, shifted)
+      @unshiftedKeys[keycode] = unshifted
+      @unshiftedKeys[unshifted] = keycode
+      @shiftedKeys[keycode] = shifted
+      @shiftedKeys[shifted] = keycode
+    end
+
+    def meaningOfCode(keycode, *args)
+      key = (@shiftState || \
+            (@numLockState && /[0-9]/.match(@shiftedKeys[keycode]))) \
+        ? @shiftedKeys[keycode]
+        : @unshiftedKeys[keycode]
+      case key
+        when nil
+        when Symbol
+          if self.respond_to?(key)
+            v = self.send(key, *args)
+            key = v || "<#{key}>"
+          else
+            key = "<U #{key}>"
+          end
+        when String
+#         $stderr.puts "#{keycode} #{key} CL=#{@capsLockState} NL=#{@numLockState}"
+          if /[A-Za-z]/.match(key)
+            key = @capsLockState ? key.upcase : key.downcase
+          end
+        else
+          $stderr.puts("unknown key def #{keycode.inspect} => #{key.inspect}")
+      end
+      key
+    end
+
+    # returns string representation of key
+    def pressed(keycode)
+      key = meaningOfCode(keycode, true)
+      if key.nil?
+        $stderr.puts("pressed unknown key #{keycode.inspect}")
+      end
+      key
+    end
+
+    def released(keycode)
+      key = meaningOfCode(keycode, false)
+      if key.nil?
+        $stderr.puts("released unknown key #{keycode.inspect}")
+      end
+      key
+    end
+
+    # special keys
+
+    def shift(press)
+      @shiftState = press
+      ""
+    end
+
+    def caps_lock(press)
+      @capsLockState = !@capsLockState if press
+      ""
+    end
+
+    def num_lock(press)
+      @numLockState = !@numLockState if press
+      ""
+    end
+
+    def power(press)
+      @powerState = !@powerState if press
+      nil
+    end
+
+    def backspace(press)
+      press ? "\x08" : ""
+    end
+
+  end # class Keyboard
 
   class BrotherPTouchHomeAndHobby < Keyboard
     # row/column	key   code-shift
     # Printing characters
     KEY_DEFS = [
-    [ 72, ' ', 'Feed' ],
-    [ 71, ',', ':' ],
-    [ 42, '.', '?' ],
-    [ 53, "'", '/' ],
-    [ 02, '"', '!' ],
-    [ 54, '&', 'Size' ],
-    [ 64, 'A', 'Style' ],
-    [ 13, 'B', 'cent' ],
-    [ 73, 'C', '@' ],
-    [ 74, 'D', 'Frame' ],
-    [ 35, 'E', '3' ],
-    [ 24, 'F', 'Accent' ],
-    [ 14, 'G', 'Repeat' ],
-    [ 44, 'H', 'Check' ],
-    [ 05, 'I', '8' ],
-    [ 04, 'J', 'Preset' ],
-    [ 01, 'K', '(' ],
-    [ 41, 'L', ')' ],
-    [ 03, 'M', '.' ],
-    [ 43, 'N', '<telephone>' ],
-    [ 11, 'O', '9' ],
-    [ 21, 'P', '0' ],
-    [ 55, 'Q', '1' ],
-    [ 75, 'R', '4' ],
-    [ 34, 'S', 'Underline' ],
-    [ 25, 'T', '5' ],
-    [ 45, 'U', '7' ],
-    [ 23, 'V', '$' ],
-    [ 65, 'W', '2' ],
-    [ 33, 'X', '~' ],
-    [ 15, 'Y', '6' ],
-    [ 63, 'Z', '-' ],
-    [ 22, 'Return' ]]
-    CONTROL_KEYS = [
-    # Control keys
-    [ 31, 'BS', 'Clear' ],
-    [ 51, 'LArrow', 'Home' ],
-    [ 61, 'RArrow', 'End' ],
-    [ 60, 'Sym' ]
+      [ '72', ' ', :feed ],
+      [ '71', ',', ':' ],
+      [ '42', '.', '?' ],
+      [ '53', "'", '/' ],
+      [ '02', '"', '!' ],
+      [ '54', '&', :size ],
+      [ '64', 'A', :style ],
+      [ '13', 'B', '<cent>' ],
+      [ '73', 'C', '@' ],
+      [ '74', 'D', :frame ],
+      [ '35', 'E', '3' ],
+      [ '24', 'F', :accent ],
+      [ '14', 'G', :repeat ],
+      [ '44', 'H', :check ],
+      [ '05', 'I', '8' ],
+      [ '04', 'J', :preset ],
+      [ '01', 'K', '(' ],
+      [ '41', 'L', ')' ],
+      [ '03', 'M', '.' ],
+      [ '43', 'N', '<telephone>' ],
+      [ '11', 'O', '9' ],
+      [ '21', 'P', '0' ],
+      [ '55', 'Q', '1' ],
+      [ '75', 'R', '4' ],
+      [ '34', 'S', :underline ],
+      [ '25', 'T', '5' ],
+      [ '45', 'U', '7' ],
+      [ '23', 'V', '$' ],
+      [ '65', 'W', '2' ],
+      [ '33', 'X', '~' ],
+      [ '15', 'Y', '6' ],
+      [ '63', 'Z', '-' ],
+      [ '22', "\n", "\n" ],
+      # Control keys
+      [ '31', :backspace, :clear ],
+      [ '51', :l_arrow, :home ],
+      [ '61', :r_arrow, :end ],
+      [ '60', :symbol, :symbol ],
+      # Shift keys
+      [ '52', :shift, :shift ],
+      [ '12', :shift, :shift ],
+      # sticky mod keys
+      [ '62', :caps_lock, :caps_lock ],
+      [ '32', :num_lock, :num_lock ],
+      # special keys
+      [ '06', :power, :power ],
+      [ '50', :print, :print ]
     ]
-    # Modifier keys
-    MODIFIER_KEYS = [
-    [ 52, 'LCode' ],
-    [ 12, 'RCode' ]
-    ]
-    # sticky mod keys
-    STICKY_MOD_KEYS = [
-    [ 62, 'Caps' ],
-    [ 32, 'Num' ]
-    ]
-    SPECIAL_KEYS = [
-    [ 06, 'Power' ],
-    [ 50, 'Print' ]
-    ]
-
-    self.init
 
     def initialize(_port, _baud)
       super
-      KEY_DEFS.each do |a|
-        self.class.addKey(Key.new(a[0], a[1]))
-        self.class.addShiftedKey(Key.new(a[0], a[2]))
-      end
+      KEY_DEFS.map { |a| add_key(*a) }
     end
-  end
 
-end
+  end # class BrotherPTouchHomeAndHobby
+
+end # module RemoteKeyboard
 
 if __FILE__ == $0
 
@@ -232,11 +252,6 @@ baud = 38400
 
 $kbd = BrotherPTouchHomeAndHobby.new(port, baud)
 
-bytes = ''
-while true do
-  bytes += $kbd.serial.read_all_available_bytes
-  str, bytes = $kbd.interpretKeyboard(bytes)
-  p str if str.length > 0
-end
+$kbd.monitorKeyboard
 
 end
