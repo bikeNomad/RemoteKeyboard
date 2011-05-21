@@ -12,8 +12,9 @@ module RemoteKeyboard
   class SerialInterface
     def initialize(_port, _baud)
       @port = SerialPort.new(_port, _baud, 8, 1, SerialPort::NONE)
-      @last_read = nil
-      @last_write = nil
+      @baud = _baud
+      @last_read = @next_write = Time.now
+      @write_delay = 0.1
     end
 
     attr_reader :last_read, :last_write
@@ -38,8 +39,13 @@ module RemoteKeyboard
     end
 
     def write(data)
+      now = Time.now
+      if now < @next_write
+        sleep(@next_write - now)
+      end
       @port.write(data)
-      @last_write = Time.now
+      # $stderr.puts("write #{data.inspect}")   # DEBUG
+      @next_write = Time.now + (data.size / @baud) + @write_delay
     end
   end
 
@@ -76,6 +82,62 @@ module RemoteKeyboard
 
     # translate the given string into commands for press/release
     def driveKeyboard(str)
+      str.chomp.split('').each do |s|
+        lastShiftState = @shiftState
+        lastCapsLockState = @capsLockState
+        lastNumLockState = @numLockState
+        code = nil
+        case s
+          when /[0-9]/
+            code = @shiftedKeys[s]
+            if !lastNumLockState || !lastShiftState
+              press(@unshiftedKeys[:shift])
+            end
+              press(code)
+              release(code)
+            if !lastNumLockState || !lastShiftState
+              release(@unshiftedKeys[:shift])
+            end
+
+          when /[A-Za-z]/
+            code = @unshiftedKeys[s.upcase]
+            if lastNumLockState
+              press(@unshiftedKeys[:num_lock])
+              release(@unshiftedKeys[:num_lock])
+              num_lock(true)
+            end
+            if !lastCapsLockState && /[A-Z]/.match(s) ||
+              (lastCapsLockState && /[a-z]/.match(s))
+                press(@unshiftedKeys[:caps_lock])
+                release(@unshiftedKeys[:caps_lock])
+                caps_lock(true)
+            end
+            press(code)
+            release(code)
+
+          when /[\x15]/ # ctrl-U
+            if !lastShiftState
+              press(@unshiftedKeys[:shift])
+            end
+            press(@shiftedKeys[:clear])
+            release(@shiftedKeys[:clear])
+            if !lastShiftState
+              release(@unshiftedKeys[:shift])
+            end
+
+          else
+            code = @unshiftedKeys[s] || @shiftedKeys[s]
+            press(code)
+            release(code)
+        end
+      end
+    end
+
+    def read_all_available_stdin_bytes(timeout = 0)
+      (rh, wh, eh) = IO::select([$stdin], nil, nil, timeout)
+      if rh
+        $stdin.sysread(1000)
+      end
     end
 
     def monitorKeyboard
@@ -98,6 +160,11 @@ module RemoteKeyboard
         end
         last_str = str
         last_obytes = bytes
+
+        sbytes = read_all_available_stdin_bytes
+        if sbytes && sbytes.length > 0
+          driveKeyboard(sbytes)
+        end
       end
     end
 
@@ -153,6 +220,14 @@ module RemoteKeyboard
       key
     end
 
+    def press(keycode)
+      serial.write(sprintf("p%s\r", keycode))
+    end
+
+    def release(keycode)
+      serial.write(sprintf("r%s\r", keycode))
+    end
+
     # special keys
 
     def shift(press)
@@ -177,6 +252,10 @@ module RemoteKeyboard
 
     def backspace(press)
       press ? "\x08" : ""
+    end
+
+    def clear(press)
+      press ? "\r" : ""
     end
 
   end # class Keyboard
