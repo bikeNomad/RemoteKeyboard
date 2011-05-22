@@ -11,7 +11,9 @@ module RemoteKeyboard
   # Serial interface to RemoteKeyboard
   class SerialInterface
     def initialize(_port, _baud)
-      @port = SerialPort.new(_port, _baud, 8, 1, SerialPort::NONE)
+      @port = SerialPort.new(_port)
+      @port.set_modem_params(_baud, 8, 1, SerialPort::NONE)
+      @port.flow_control = SerialPort::NONE 
       @baud = _baud
       @last_read = @next_write = Time.now
       @write_delay = 0.1
@@ -181,8 +183,7 @@ module RemoteKeyboard
     def meaningOfCode(keycode, *args)
       key = (@shiftState || \
             (@numLockState && /[0-9]/.match(@shiftedKeys[keycode]))) \
-        ? @shiftedKeys[keycode]
-        : @unshiftedKeys[keycode]
+        ? @shiftedKeys[keycode] : @unshiftedKeys[keycode]
       case key
         when nil
         when Symbol
@@ -327,10 +328,16 @@ if __FILE__ == $0
 include RemoteKeyboard
 
 port = Dir["/dev/cu.usb*"][0]
+if port.nil?
+  $stderr.puts "Can't find serial port!"
+  exit 1
+else
+  $stderr.puts "Using serial port #{port}"
+end
+
 baud = 38400
 
 $kbd = BrotherPTouchHomeAndHobby.new(port, baud)
-
 $kbd.monitorKeyboard
 
 end
