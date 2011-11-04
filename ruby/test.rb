@@ -170,6 +170,14 @@ module RemoteKeyboard
       end
     end
 
+    def demo
+      while true do
+        driveKeyboard("Control any Matrix Keyboard")
+        sleep(5)
+        driveKeyboard("\x15")
+      end
+    end
+
   protected
     attr_reader :serial
 
@@ -338,6 +346,7 @@ end
 baud = 38400
 
 $kbd = BrotherPTouchHomeAndHobby.new(port, baud)
-$kbd.monitorKeyboard
+# $kbd.monitorKeyboard
+$kbd.demo
 
 end
