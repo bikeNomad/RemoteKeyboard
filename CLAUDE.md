@@ -130,3 +130,4 @@ The current configuration is optimized for Arduino Pro Mini form factor.
 - The `countBits()` function uses a lookup table to efficiently count active columns and find the active column number
 - Serial commands are processed in the main loop, not in an ISR, to avoid blocking interrupts
 - All row outputs are briefly set as inputs during reading to sample their state
+- I want to re-implement this code in MicroPython and also fix any bugs.

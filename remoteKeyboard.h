@@ -152,7 +152,6 @@
 // last column is for aux (non-matrix) switches
 extern volatile row_mask_t forcedSwitches[N_COLUMNS+1];   // bitmap for which switches are forced
 extern volatile row_mask_t activeSwitches[N_COLUMNS+1];   // user pressed keys
-extern volatile row_mask_t changedSwitches[N_COLUMNS+1];  // user pressed keys (edge detect)
 
 typedef enum
 {

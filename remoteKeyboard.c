@@ -38,12 +38,12 @@ volatile row_mask_t activeSwitches[N_COLUMNS+1]; // first time we notice a switc
 volatile row_mask_t priorActiveSwitches[N_COLUMNS+1]; // second time
 
 // DEBUG
-volatile column_mask_t seenColumnsHigh;
+volatile column_mask_t seenColumnsHigh = 0;
 volatile column_mask_t seenColumnsLow = 0xFF;
-volatile row_mask_t seenRowsHigh;
+volatile row_mask_t seenRowsHigh = 0;
 volatile row_mask_t seenRowsLow       = 0xFF;
 
-volatile uint16_t columnStrobes[N_COLUMNS];
+volatile uint16_t columnStrobes[N_COLUMNS+1];
 
 // LED flashing: bits shifted out from LS bit; 1 = LED ON
 // each bit is worth  LED_BIT_TICKS
@@ -349,8 +349,8 @@ static uint8_t countBits(uint8_t number, uint8_t *lastBitnumSet)
         { 4, 3 },                          // F
     };
 
-    uint8_t numberSet;
-    uint8_t highestBit;
+    uint8_t numberSet = 0;
+    uint8_t highestBit = 0;
     uint8_t nybble       = number & 0x0F;
     struct BitDecode_t const *p = usedBits + nybble;
 
@@ -393,7 +393,6 @@ ISR(PCINT1_vect)
     // get the column inputs (at least one of which has just changed)
     column_mask_t columnInputs = readColumnInputs();
 
-    static column_mask_t lastColumnInputs;
     static mask_t quiescentState = 0xFF;    // debug
 
 again:
@@ -432,9 +431,6 @@ again:
             quiescentState = ~quiescentState;
             break;
     }
-
-    // remember last column scan
-    lastColumnInputs = columnInputs;
 }
 
 // print byte as 2 hex chars
@@ -479,12 +475,16 @@ static void dumpState(void)
 
 void pressSwitch(uint8_t row, uint8_t column)
 {
+    cli();
     forcedSwitches[column] |= (1 << row);
+    sei();
 }
 
 void releaseSwitch(uint8_t row, uint8_t column)
 {
+    cli();
     forcedSwitches[column] &= ~(1 << row);
+    sei();
 }
 
 // Set or clear bit in forcedSwitches[] in response to command string
@@ -585,7 +585,8 @@ static SerialCommandState processSerialCommand(void)
 			case 'R': // reset
 				if (bytesReceived == 2)
 				{
-					goto *0; // reset
+					// Proper software reset using watchdog or jump to bootloader
+					asm volatile ("jmp 0");
 				}
 				break;
 			case '\r': // empty line: dump state
