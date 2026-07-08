@@ -131,8 +131,8 @@ NOTES:
  #define UART0_UDRIE    UDRIE
 #elif defined(__AVR_ATmega48__) ||defined(__AVR_ATmega88__) || defined(__AVR_ATmega168__)
  #define ATMEGA_USART0
- #define UART0_RECEIVE_INTERRUPT   SIG_USART_RECV
- #define UART0_TRANSMIT_INTERRUPT  SIG_USART_DATA
+ #define UART0_RECEIVE_INTERRUPT   USART_RX_vect
+ #define UART0_TRANSMIT_INTERRUPT  USART_UDRE_vect
  #define UART0_STATUS   UCSR0A
  #define UART0_CONTROL  UCSR0B
  #define UART0_DATA     UDR0
@@ -342,6 +342,18 @@ unsigned int uart_getc(void)
     return (UART_LastRxError << 8) + data;
 
 }/* uart_getc */
+
+
+/*************************************************************************
+Function: uart_available()
+Purpose:  determine whether received data is waiting in the ringbuffer
+Returns:  nonzero if at least one received byte is available
+**************************************************************************/
+unsigned char uart_available(void)
+{
+    return ( UART_RxHead != UART_RxTail );
+
+}/* uart_available */
 
 
 /*************************************************************************

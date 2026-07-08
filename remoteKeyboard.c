@@ -18,6 +18,8 @@ FUSES =
 // forward declarations
 static column_mask_t readColumnInputs(void);
 static row_mask_t readRowStates(void);
+static void queueKeyEvent(uint8_t pressed, uint8_t row, uint8_t column);
+static void sendQueuedEvents(void);
 static void processRowInputs(row_mask_t rowInputs, uint8_t activeColumn);
 static row_mask_t readAuxSwitchStates(void);
 static void assertRowOutputs(row_mask_t mask, row_mask_t quiescent);
@@ -36,6 +38,19 @@ static void initPCInterrupts(void);
 volatile row_mask_t forcedSwitches[N_COLUMNS+1];
 volatile row_mask_t activeSwitches[N_COLUMNS+1]; // first time we notice a switch change
 volatile row_mask_t priorActiveSwitches[N_COLUMNS+1]; // second time
+volatile row_mask_t reportedSwitches[N_COLUMNS+1]; // last state reported to host
+
+// Key events queued by the ISRs and transmitted from the main loop.
+// uart_putc() busy-waits when the TX buffer fills; with interrupts off
+// inside an ISR that wait can never end, so ISRs must not transmit.
+#define EVENT_QUEUE_SIZE 64            // power of 2
+#define EVENT_QUEUE_MASK (EVENT_QUEUE_SIZE - 1)
+#define EVENT_PRESS      0x40          // bit 6; row in bits 5:3, column in bits 2:0
+
+static volatile uint8_t eventQueue[EVENT_QUEUE_SIZE];
+static volatile uint8_t eventHead;     // written only by ISRs
+static volatile uint8_t eventTail;     // written only by main loop
+static volatile uint8_t eventOverflows; // events dropped because queue was full
 
 // DEBUG
 volatile column_mask_t seenColumnsHigh = 0;
@@ -74,43 +89,39 @@ static column_mask_t readColumnInputs(void)
 }
 
 // read row inputs, return raw value
+// Leaves all row pins tristated with pull-ups off; the caller re-asserts
+// any forced rows for the currently active column afterwards. Restoring
+// the previous DDR here would re-drive rows that were forced for the
+// previously active column onto the column now being strobed, and a
+// leftover PORT bit would enable a pull-up that biases the read.
 // CALLED FROM ISR
 static row_mask_t readRowStates(void)
 {
     uint8_t retval = 0;
 
 #if PB_ROW_MASK != 0
-    uint8_t oldDDRB  = DDRB;                    // save direction
-    if (oldDDRB & PB_ROW_MASK)
-        DDRB    = oldDDRB & ~PB_ROW_MASK;   // reset DDR for inputs
+    DDRB  &= ~PB_ROW_MASK;             // tristate
+    PORTB &= ~PB_ROW_MASK;             // pull-ups off
 #endif
 #if PC_ROW_MASK != 0
-    uint8_t oldDDRC  = DDRC;                    // save direction
-    if (oldDDRC & PC_ROW_MASK)
-        DDRC    = oldDDRC & ~PC_ROW_MASK;   // reset DDR for inputs
+    DDRC  &= ~PC_ROW_MASK;             // tristate
+    PORTC &= ~PC_ROW_MASK;             // pull-ups off
 #endif
 #if PD_ROW_MASK != 0
-    uint8_t oldDDRD  = DDRD;                    // save direction
-    if (oldDDRD & PD_ROW_MASK)
-        DDRD    = oldDDRD & ~PD_ROW_MASK;   // reset DDR for inputs
+    DDRD  &= ~PD_ROW_MASK;             // tristate
+    PORTD &= ~PD_ROW_MASK;             // pull-ups off
 #endif
 
     _delay_us(10);
 
 #if PB_ROW_MASK != 0
-    retval |= PB_TO_ROW(PINB);         // and read current values
-    if (oldDDRB & PB_ROW_MASK)
-        DDRB    = oldDDRB;                  // restore direction
+    retval |= PB_TO_ROW(PINB);         // read current values
 #endif
 #if PC_ROW_MASK != 0
-    retval |= PC_TO_ROW(PINC);         // and read current values
-    if (oldDDRC & PC_ROW_MASK)
-        DDRC    = oldDDRC;                  // restore direction
+    retval |= PC_TO_ROW(PINC);         // read current values
 #endif
 #if PD_ROW_MASK != 0
-    retval |= PD_TO_ROW(PIND);         // and read current values
-    if (oldDDRD & PD_ROW_MASK)
-        DDRD    = oldDDRD;                  // restore direction
+    retval |= PD_TO_ROW(PIND);         // read current values
 #endif
 
     seenRowsHigh |= retval;            // DEBUG
@@ -119,6 +130,36 @@ static row_mask_t readRowStates(void)
     seenRowsLow  &= ~UNUSED_ROWS_MASK;
 
     return retval;
+}
+
+// append a key event for the main loop to transmit
+// CALLED FROM ISR
+static void queueKeyEvent(uint8_t pressed, uint8_t row, uint8_t column)
+{
+    uint8_t next = (eventHead + 1) & EVENT_QUEUE_MASK;
+    if (next == eventTail)
+    {
+        eventOverflows++;              // full; drop event
+        return;
+    }
+    eventQueue[eventHead] = (pressed ? EVENT_PRESS : 0) | (row << 3) | column;
+    eventHead = next;
+}
+
+// transmit queued key events as p00 or r00 type codes
+// CALLED FROM MAIN LOOP ONLY
+static void sendQueuedEvents(void)
+{
+    while (eventTail != eventHead)
+    {
+        uint8_t ev = eventQueue[eventTail];
+        eventTail  = (eventTail + 1) & EVENT_QUEUE_MASK;
+        uart_putc((ev & EVENT_PRESS) ? 'p' : 'r');
+        uart_putc(((ev >> 3) & 0x07) + '0');
+        uart_putc((ev & 0x07) + '0');
+        uart_putc('\r');
+        uart_putc('\n');
+    }
 }
 
 // CALLED FROM ISR
@@ -148,21 +189,25 @@ static void processRowInputs(row_mask_t rowInputs, uint8_t activeColumn)
     // for at least one sample.
     row_mask_t valid = changed2 & ~changed;
 
+    // Of those, only report switches whose debounced state differs from the
+    // last state reported to the host; without this, a one-sample glitch is
+    // suppressed on entry but emits an unmatched event when it returns to
+    // the old state. Never report switches we are forcing ourselves: their
+    // inputs can read back our own drive.
+    row_mask_t report = valid
+        & (reportedSwitches[activeColumn] ^ rowInputs)
+        & ~forcedSwitches[activeColumn];
+
     row_mask_t mask  = 1;
     for (uint8_t rowBitNum = 0; rowBitNum < N_ROWS; rowBitNum++, mask <<= 1)
     {
-        // for each row input with a valid change
-        if (valid & mask)
+        if (report & mask)
         {
-            uint8_t state = (rowInputs & mask) ? 'p' : 'r'; // pressed/released
-            // send out p00 or r00 type codes
-            uart_putc(state);
-            uart_putc(rowBitNum + '0');
-            uart_putc(activeColumn + '0');
-            uart_putc('\r');
-            uart_putc('\n');
+            queueKeyEvent(rowInputs & mask, rowBitNum, activeColumn);
         }
     }
+    reportedSwitches[activeColumn]
+        = (reportedSwitches[activeColumn] & ~report) | (rowInputs & report);
     priorActiveSwitches[activeColumn] = activeSwitches[activeColumn];
     activeSwitches[activeColumn]      = rowInputs;
 }
@@ -326,47 +371,24 @@ static void assertAuxOutputs(row_mask_t mask)
 // CALLED FROM ISR
 static uint8_t countBits(uint8_t number, uint8_t *lastBitnumSet)
 {
-    static struct BitDecode_t
-    {
-        uint8_t nBits : 4;
-        uint8_t highestBit : 4;
-    } const usedBits[16] = {
-        { 0, 0 },                          // 0
-        { 1, 0 },                          // 1
-        { 1, 1 },                          // 2
-        { 2, 1 },                          // 3
-        { 1, 2 },                          // 4
-        { 2, 2 },                          // 5
-        { 2, 2 },                          // 6
-        { 3, 2 },                          // 7
-        { 1, 3 },                          // 8
-        { 2, 3 },                          // 9
-        { 2, 3 },                          // A
-        { 3, 3 },                          // B
-        { 2, 3 },                          // C
-        { 3, 3 },                          // D
-        { 3, 3 },                          // E
-        { 4, 3 },                          // F
+    // high nybble: number of bits set; low nybble: highest bit set
+    static const uint8_t usedBits[16] PROGMEM = {
+        0x00, 0x10, 0x11, 0x21,            // 0 1 2 3
+        0x12, 0x22, 0x22, 0x32,            // 4 5 6 7
+        0x13, 0x23, 0x23, 0x33,            // 8 9 A B
+        0x23, 0x33, 0x33, 0x43,            // C D E F
     };
 
-    uint8_t numberSet = 0;
-    uint8_t highestBit = 0;
-    uint8_t nybble       = number & 0x0F;
-    struct BitDecode_t const *p = usedBits + nybble;
+    uint8_t lo = pgm_read_byte(&usedBits[number & 0x0F]);
+    uint8_t hi = pgm_read_byte(&usedBits[number >> 4]);
 
-    if ((numberSet = p->nBits))
+    uint8_t numberSet  = lo >> 4;
+    uint8_t highestBit = lo & 0x0F;
+
+    if (hi >> 4)
     {
-        highestBit = p->highestBit;
-    }
-
-    number >>= 4;
-    p        = usedBits + number;
-
-    uint8_t nb;
-    if ((nb = p->nBits))
-    {
-        numberSet += nb;
-        highestBit = 4 + p->highestBit;
+        numberSet += hi >> 4;
+        highestBit = 4 + (hi & 0x0F);
     }
 
     if (numberSet)
@@ -388,6 +410,9 @@ ISR(TIMER0_OVF_vect)
 
 // pin change interrupt vector PCINT1
 // triggered by any logic change on enabled PCINTxx pins (inputs from host column strobe pins)
+#if PB_COL_MASK != 0 || PD_COL_MASK != 0
+#   error "column inputs on ports B or D need PCINT0/PCINT2 ISRs; only PCINT1 is implemented"
+#endif
 ISR(PCINT1_vect)
 {
     // get the column inputs (at least one of which has just changed)
@@ -455,9 +480,16 @@ static void dumpState(void)
     printHexByte(seenRowsHigh);
     uart_puts_P(" rlo: ");
     printHexByte(seenRowsLow);
-    uart_puts_P("\r\nCo Fo Ac Pr CSTR\r\n");
+    uart_puts_P("\r\nCo Fo Ac Pr Re CSTR\r\n");
     for (uint8_t i = 0; i <= N_COLUMNS; i++)
     {
+        // 16-bit counter shared with the ISR; copy and reset atomically
+        uint16_t strobes;
+        ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+        {
+            strobes          = columnStrobes[i];
+            columnStrobes[i] = 0;      // reset count
+        }
         printHexByte(i);
         uart_putc(' ');
         printHexByte(forcedSwitches[i]);
@@ -466,25 +498,32 @@ static void dumpState(void)
         uart_putc(' ');
         printHexByte(priorActiveSwitches[i]);
         uart_putc(' ');
-        printHexByte(columnStrobes[i] >> 8);
-        printHexByte(columnStrobes[i] & 0xFF);
+        printHexByte(reportedSwitches[i]);
+        uart_putc(' ');
+        printHexByte(strobes >> 8);
+        printHexByte(strobes & 0xFF);
         uart_puts_P("\r\n");
-        columnStrobes[i] = 0;   // reset count
     }
+    uart_puts_P("Ov: ");
+    printHexByte(eventOverflows);
+    uart_puts_P("\r\n");
+    eventOverflows = 0;
 }
 
 void pressSwitch(uint8_t row, uint8_t column)
 {
-    cli();
-    forcedSwitches[column] |= (1 << row);
-    sei();
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+    {
+        forcedSwitches[column] |= (1 << row);
+    }
 }
 
 void releaseSwitch(uint8_t row, uint8_t column)
 {
-    cli();
-    forcedSwitches[column] &= ~(1 << row);
-    sei();
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+    {
+        forcedSwitches[column] &= ~(1 << row);
+    }
 }
 
 // Set or clear bit in forcedSwitches[] in response to command string
@@ -511,6 +550,9 @@ static uint8_t doPressOrReleaseRC(char *command)
     if ((column >= '0') && (column <= '0' + N_COLUMNS))
         column -= '0';
     else
+        goto error;
+    // the aux column only has N_AUX_OUTPUTS switches
+    if ((column == N_COLUMNS) && (row >= N_AUX_OUTPUTS))
         goto error;
     if (command[0] == 'p')
         pressSwitch(row, column);
@@ -585,8 +627,12 @@ static SerialCommandState processSerialCommand(void)
 			case 'R': // reset
 				if (bytesReceived == 2)
 				{
-					// Proper software reset using watchdog or jump to bootloader
-					asm volatile ("jmp 0");
+					// hardware reset via watchdog; a jump to 0 would leave
+					// peripherals configured and interrupts enabled
+					cli();
+					wdt_enable(WDTO_15MS);
+					for (;;)
+						;
 				}
 				break;
 			case '\r': // empty line: dump state
@@ -646,6 +692,11 @@ static void initPCInterrupts(void)
 
 int main(void)
 {
+    // after a watchdog reset (from the 'R' command) the watchdog is still
+    // running with a 15 ms timeout; stop it before it resets us again
+    MCUSR = 0;
+    wdt_disable();
+
     initIO();
     initTimers();
     initPCInterrupts();
@@ -656,13 +707,29 @@ int main(void)
     // debug: print wakeup message
     uart_puts_P("RemoteKeyboard v1.0 by Ned Konz\r\n");
 
-    // main loop: process serial commands and go to sleep
+    // main loop: send key events, process serial commands, and go to sleep
     for (;; )
     {
-        processSerialCommand();
-        // nothing else to do: go to sleep
-        set_sleep_mode(SLEEP_MODE_IDLE);
-        sleep_mode();
+        sendQueuedEvents();
+        while (processSerialCommand() != SERIAL_CMD_INCOMPLETE)
+            ;
+        // Sleep only if nothing arrived since the checks above. Interrupts
+        // stay off between the checks and sleep_cpu(); the sei() takes
+        // effect after the following instruction, so an interrupt in that
+        // window executes and then immediately wakes the sleep.
+        cli();
+        if ((eventHead == eventTail) && !uart_available())
+        {
+            set_sleep_mode(SLEEP_MODE_IDLE);
+            sleep_enable();
+            sei();
+            sleep_cpu();
+            sleep_disable();
+        }
+        else
+        {
+            sei();
+        }
     }
     return 0;
 }

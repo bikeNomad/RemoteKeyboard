@@ -119,6 +119,14 @@ extern unsigned int uart_getc(void);
 
 
 /**
+ *  @brief   Determine whether received data is waiting in the ringbuffer
+ *  @param   void
+ *  @return  nonzero if at least one received byte is available
+ */
+extern unsigned char uart_available(void);
+
+
+/**
  *  @brief   Put byte to ringbuffer for transmitting via UART
  *  @param   data byte to be transmitted
  *  @return  none

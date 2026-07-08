@@ -228,7 +228,7 @@ depend:
 		>> $(MAKEFILE); \
 	$(CC) -M -mmcu=$(MCU) $(CDEFS) $(CINCS) $(SRC) $(ASRC) >> $(MAKEFILE)
 
-.PHONY:	all build elf hex eep lss sym program coff extcoff clean depend
+.PHONY:	all build elf hex eep lss sym program coff extcoff clean depend $(TARGET)
 
 serial:
 	@minicom -D $(AVRDUDE_PORT) -b $(BAUD)

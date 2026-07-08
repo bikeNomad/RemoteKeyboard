@@ -6,12 +6,14 @@
 #include <stdint.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
+#include <avr/wdt.h>
 #include <util/delay.h>
+#include <util/atomic.h>
 #include <avr/sleep.h>
 #include "uartlibrary/uart.h"
 
 #if !defined(BAUD)
-#   define BAUD 9600
+#   define BAUD 38400
 #endif
 
 #if defined(__AVR_ATmega48__) ||\
@@ -78,8 +80,8 @@
 #   define PB_FROM_ROW(val)     ((val)>>6)
 
 #   define PC_ROW_MASK          0x00
-#   define PC_TO_ROW(val)
-#   define PC_FROM_ROW(val)
+#   define PC_TO_ROW(val)       0
+#   define PC_FROM_ROW(val)     0
 
 #   define PD_ROW_MASK          0xFC
 #   define PD_TO_ROW(val)       ((val)>>2)
@@ -116,16 +118,16 @@
 #	define UNUSED_COLUMNS_MASK	((0xFF<<N_COLUMNS)&0xFF)
 
 #   define PB_COL_MASK          0x00
-#   define PB_TO_COL(val)
-#   define PB_FROM_COL(val)
+#   define PB_TO_COL(val)       0
+#   define PB_FROM_COL(val)     0
 
 #   define PC_COL_MASK          0x3F
 #   define PC_TO_COL(val)       ((val)&PC_COL_MASK)
 #   define PC_FROM_COL(val)     ((val)&PC_COL_MASK)
 
 #   define PD_COL_MASK          0x00
-#   define PD_TO_COL(val)
-#   define PD_FROM_COL(val)
+#   define PD_TO_COL(val)       0
+#   define PD_FROM_COL(val)     0
 
 #endif  /* atmegax8, atmegax8p */
 
@@ -152,6 +154,7 @@
 // last column is for aux (non-matrix) switches
 extern volatile row_mask_t forcedSwitches[N_COLUMNS+1];   // bitmap for which switches are forced
 extern volatile row_mask_t activeSwitches[N_COLUMNS+1];   // user pressed keys
+extern volatile row_mask_t reportedSwitches[N_COLUMNS+1]; // last state reported to host
 
 typedef enum
 {
