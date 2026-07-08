@@ -19,6 +19,12 @@ The hardware uses vertical debouncing (3-sample validation) and pin-change inter
 
 ## Build Commands
 
+`avr-gcc` is not on the PATH on this machine; use the Arduino IDE's toolchain:
+
+```bash
+export PATH="/Users/ned/Library/Arduino15/packages/arduino/tools/avr-gcc/7.3.0-atmel3.6.1-arduino7/bin:$PATH"
+```
+
 All build operations use the AVR toolchain configured in the Makefile:
 
 ```bash
@@ -55,10 +61,12 @@ The device communicates using simple ASCII commands over serial (38400 8N1):
 **To device (commands):**
 - `pRC\r` - Simulate pressing row R, column C
 - `rRC\r` - Simulate releasing row R, column C
-- `R\r` - Reset microcontroller (jumps to address 0)
-- `\r` - Dump debug state (shows column/row observations, forced switches, scan counts)
+- `R\r` - Reset microcontroller (hardware reset via watchdog)
+- `\r` - Dump debug state (shows column/row observations, forced/active/reported switches, scan counts, event queue overflows)
 
-Row/column indices are ASCII digits: rows 0-7, columns 0-6 (column 6 = aux switches).
+Row/column indices are ASCII digits: rows 0-7, columns 0-6 (column 6 = aux switches; aux rows must be < N_AUX_OUTPUTS).
+
+Forced (simulated) keys are deliberately NOT echoed back as `pRC`/`rRC` events; only real key transitions are reported.
 
 ## Code Architecture
 
@@ -76,15 +84,18 @@ Row/column indices are ASCII digits: rows 0-7, columns 0-6 (column 6 = aux switc
    - Updates auxiliary outputs
 
 3. **Main loop**:
+   - Transmits queued key events over serial
    - Processes serial commands asynchronously
-   - Enters idle sleep between operations
+   - Enters idle sleep only when the event queue and RX buffer are empty (cli/sleep_enable/sei/sleep_cpu sequence to avoid the check-then-sleep race)
 
 ### Key Data Structures
 
 - `forcedSwitches[N_COLUMNS+1]` - Bitmap of simulated key presses
 - `activeSwitches[N_COLUMNS+1]` - Current switch states (1st sample)
 - `priorActiveSwitches[N_COLUMNS+1]` - Previous switch states (2nd sample)
-- Debouncing logic: `valid = (prior ^ active) & ~(active ^ input)`
+- `reportedSwitches[N_COLUMNS+1]` - Last state reported to the host; events are emitted only when the debounced state differs from it (prevents unmatched events after one-sample glitches)
+- `eventQueue[]` - Lock-free SPSC ring buffer (head written only by ISRs, tail only by main); one byte per event: press flag bit 6, row bits 5:3, column bits 2:0
+- Debouncing logic: `valid = (prior ^ active) & ~(active ^ input)`, then gated by `(reported ^ input) & ~forced`
 
 ### Pin Configuration Macros
 
@@ -111,6 +122,8 @@ The `ruby/` directory contains host-side control software:
 
 Both scripts require the `serialport` gem. The terminal script also requires `tty-reader`.
 
+The two scripts are near-duplicates of the same `RemoteKeyboard` module (SerialInterface/Keyboard/BrotherPTouchHomeAndHobby classes); bug fixes must be applied to both. Serial writes are paced at 10 bits per byte (8N1) plus `@write_delay`; the serial read loops block for 20 ms per iteration to avoid spinning.
+
 ## Configuration Changes
 
 To modify the matrix dimensions or pin assignments:
@@ -127,7 +140,9 @@ The current configuration is optimized for Arduino Pro Mini form factor.
 
 - The firmware dynamically detects whether the matrix is active-high or active-low by counting set bits
 - Row pins are tristated (DDR=0) when not being driven to avoid conflicts
-- The `countBits()` function uses a lookup table to efficiently count active columns and find the active column number
-- Serial commands are processed in the main loop, not in an ISR, to avoid blocking interrupts
-- All row outputs are briefly set as inputs during reading to sample their state
+- The `countBits()` function uses a PROGMEM lookup table to efficiently count active columns and find the active column number
+- **ISRs must never call `uart_putc()`** - it busy-waits when the TX buffer fills, and with interrupts off inside an ISR the buffer can never drain (permanent hang). ISRs queue events via `queueKeyEvent()`; all UART transmission happens in the main loop, which also keeps `uart_putc()` single-context (it is not reentrant)
+- `readRowStates()` leaves all row pins tristated with pull-ups off (it must NOT restore the saved DDR - that re-drives rows forced for the previous column onto the newly strobed column); the PCINT ISR re-asserts forced rows afterwards
+- Only the `PCINT1_vect` (port C) column ISR exists; a `#error` guard in remoteKeyboard.c fires if `PB_COL_MASK`/`PD_COL_MASK` become nonzero without adding PCINT0/PCINT2 ISRs
+- `uartlibrary/` is a vendored Fleury UART library with local modifications (added `uart_available()`, modernized ISR vector names to `USART_RX_vect`/`USART_UDRE_vect`); do not re-sync it with upstream without preserving these
 - I want to re-implement this code in MicroPython and also fix any bugs.

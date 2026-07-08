@@ -19,7 +19,7 @@ module RemoteKeyboard
       @write_delay = 0.1
     end
 
-    attr_reader :last_read, :last_write
+    attr_reader :last_read, :next_write
 
     def close
       @port.close unless @port.closed?
@@ -47,7 +47,8 @@ module RemoteKeyboard
       end
       @port.write(data)
       # $stderr.puts("write #{data.inspect}")   # DEBUG
-      @next_write = Time.now + (data.size / @baud) + @write_delay
+      # 10 bits per byte on the wire (8N1: start + 8 data + stop)
+      @next_write = Time.now + (data.size * 10.0 / @baud) + @write_delay
     end
   end
 
@@ -92,12 +93,14 @@ module RemoteKeyboard
         case s
           when /[0-9]/
             code = @shiftedKeys[s]
-            if !lastNumLockState || !lastShiftState
+            # digits need shift unless num lock or shift is already active
+            needShift = !(lastNumLockState || lastShiftState)
+            if needShift
               press(@unshiftedKeys[:shift])
             end
-              press(code)
-              release(code)
-            if !lastNumLockState || !lastShiftState
+            press(code)
+            release(code)
+            if needShift
               release(@unshiftedKeys[:shift])
             end
 
@@ -148,7 +151,8 @@ module RemoteKeyboard
       last_ibytes = last_obytes = ''
       last_str = ''
       while true do
-        bytes += serial.read_all_available_bytes
+        # block briefly so this loop doesn't spin at 100% CPU when idle
+        bytes += serial.read_all_available_bytes(0.02)
         str = ''
         bytes.sub!("RemoteKeyboard v1.0 by Ned Konz\r\n", '')
         bytes.gsub!("\x00", '')
